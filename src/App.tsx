@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Provider } from "react-redux";
 import { useScreens } from "react-native-screens";
-import { WonderfulSubs } from "./provider";
+import { WonderfulSubs } from "./provider/wonderfulsubs";
 import { Provider as ProviderInterface } from "./provider/providerInterface";
 import { Alert } from "react-native";
 import { buildStore } from "./store";
