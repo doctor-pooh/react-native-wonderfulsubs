@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { AnyAction } from "redux";
 import { StyleSheet, View, Text, Animated, Dimensions } from "react-native";
+import KeepAwake from 'react-native-keep-awake';
 import Icon from "react-native-vector-icons/FontAwesome";
 import VideoPlayer from "react-native-video";
 import { FirestickKeys } from "../components";
@@ -180,6 +181,13 @@ class Player extends Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    KeepAwake.activate();
+  }
+  componentWillUnmount() {
+    KeepAwake.deactivate();
+  }
+
   render() {
     const {
       navigation,
@@ -247,9 +255,14 @@ class Player extends Component<Props, State> {
           keyPressTimeOut={250}
           onPlay={() => {
             this.setState({ paused: !this.state.paused });
-            const displayobj = !this.state.paused
-              ? { icon: "play", text: "Play" }
-              : { icon: "pause", text: "Paused" };
+            let displayobj; 
+            if (!this.state.paused) {
+              displayobj = { icon: "play", text: "Play" };
+              KeepAwake.activate();
+            } else {
+              displayobj = { icon: "pause", text: "Paused" };
+              KeepAwake.deactivate();
+            }
             this.displayPopup({
               ...displayobj,
               autoDismiss: !this.state.paused
