@@ -1,12 +1,12 @@
 {
-  "name": "FirestickDemo",
+  "name": "WonderfulSubs",
   "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "dev": "react-native run-android",
     "release": "react-native run-android --variant=\"release\"",
-    "build": "cd android && gradlew.bat assembleRelease", 
+    "build": "cd android && gradlew.bat assembleRelease",
     "test": "jest"
   },
   "dependencies": {
