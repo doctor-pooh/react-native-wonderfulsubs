@@ -52,7 +52,7 @@ export default class EpisodeItem extends Component<Props> {
           underlayStyle={{ elevation: 0, zIndex: 9999 }}
           focusChildStyle={{
             elevation: 4,
-            backgroundColor: watched ? "rgba(0,200,120,0.60)" : "rgba(90,90,90,1)",
+            backgroundColor: watched ? "rgba(192, 135, 48,1)" : "rgba(90,90,90,1)",
             opacity: 1
           }}
           onPress={onPress}
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     bottom: 10,
     zIndex: 999,
     fontSize: 20,
-    color: "rgba(0,200,120,0.60)"
+    color: "rgba(192, 135, 48,1)"
   },
   text: {
     color: "white",

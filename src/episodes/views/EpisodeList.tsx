@@ -9,12 +9,7 @@
 import React from "react";
 import { AnyAction } from "redux";
 import { connect } from "react-redux";
-import {
-  StyleSheet,
-  View,
-  ActivityIndicator,
-  FlatList
-} from "react-native";
+import { StyleSheet, View, ActivityIndicator, FlatList } from "react-native";
 import { NavigationEvents } from "react-navigation";
 import * as actions from "../../redux-store/actions";
 import { EpisodeItem } from "../components";
@@ -70,6 +65,20 @@ const EpisodeList = (props: Props) => {
       showData.seasons[selectedSeason].episodes) ||
     [];
 
+  let focusedEpisodeId = undefined;
+  const episodeList = episodeData.map(episode => {
+    if (episodesWatched && !episodesWatched[episode.id] && !focusedEpisodeId) {
+      focusedEpisodeId = episode.id;
+    }
+    return {
+      ...episode,
+      key: `${episode.id}`
+    };
+  });
+  focusedEpisodeId =
+    focusedEpisodeId
+      ? focusedEpisodeId
+      : episodeList.length > 0 && episodeList[0].id;
   let topBar: Episode;
   return (
     <View>
@@ -79,13 +88,7 @@ const EpisodeList = (props: Props) => {
         }}
       />
       <FlatList
-        data={[
-          { ...topBar, key: "topBar" },
-          ...episodeData.map(episode => ({
-            ...episode,
-            key: `${episode.id}`
-          }))
-        ]}
+        data={[{ ...topBar, key: "topBar" }, ...episodeList]}
         renderItem={({ item, index }) => {
           if (index === 0) {
             return <TopActionBar show={showData} />;
@@ -98,6 +101,7 @@ const EpisodeList = (props: Props) => {
                 episodeNumber={item.episodeNumber}
                 imageSource={item.picture}
                 watched={episodesWatched && episodesWatched[item.id]}
+                preferredFocus={item.id === focusedEpisodeId}
                 onPress={() =>
                   fetchSourceData({
                     showId: showData.id,
