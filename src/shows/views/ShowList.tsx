@@ -99,7 +99,7 @@ const ShowList = (props: Props) => {
       }
       onScroll={({ nativeEvent: { contentOffset } }) => {
         if (
-          showsData.length < DISPLAY_CONST.SHOW_LIST.MAX_SHOWS_ON_SCREEN &&
+          showsData.length < global.__provider().maxShowsToFetch &&
           category &&
           category !== DATA_CONST.CATEGORIES.SEARCH_CATEGORY &&
           category !== DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY

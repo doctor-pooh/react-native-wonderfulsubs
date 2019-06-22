@@ -4,9 +4,10 @@ export default function(handlers) {
     if (handlers.hasOwnProperty(action.type)) {
       const actions = handlers[action.type](store.getState(), action);
       if (Array.isArray(actions)) {
-        actions.map(action => store.dispatch(action));
+        actions.map(act => store.dispatch(act));
+      } else {
+        actions && store.dispatch(actions);
       }
-      store.dispatch(actions);
     }
   };
 }

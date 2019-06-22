@@ -10,7 +10,7 @@ import { AnyAction } from "redux";
 import { NavigationActions } from "react-navigation";
 import { DATA_CONST } from "../constants";
 
-function* fetchShowData({ payload: category }: AnyAction) {
+function* fetchShowData({ payload: { category } }: AnyAction) {
   const data = yield global
     .__provider()
     .fetchShows({ name: "", type: category });
@@ -30,7 +30,6 @@ function* fetchSearchData({ payload: { query } }: AnyAction) {
 function* fetchSourceData({
   payload: { showId, seasonId, episodeId }
 }: AnyAction) {
-  // let navigationState = yield select((state) => state.navigation);
   const { data, source } = yield global
     .__provider()
     .fetchSources({ showId, seasonId, episodeId });
@@ -55,7 +54,7 @@ export function* fetchShowEpisodesAsync() {
 
 export function* fetchShowDataAsync() {
   yield takeLeading(FETCH_SHOW_DATA, (action: AnyAction) => {
-    const category = action.payload;
+    const { category } = action.payload;
     switch (category) {
       case DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY:
         return fetchBookmarks();

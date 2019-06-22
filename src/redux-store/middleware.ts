@@ -9,14 +9,14 @@ import { Show } from "../types";
 import { findNextEpisode } from "../show-utils";
 import { DATA_CONST } from "../constants";
 
-function goGetShowData(state, { payload: category }) {
+function goGetShowData(state, { payload: category }, infiniteScroll = false) {
   switch (category) {
     case DATA_CONST.CATEGORIES.SEARCH_CATEGORY:
-      return;
+      return [];
     case DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY:
-      return fetchShowData(category);
+      return fetchShowData({category, infiniteScroll});
     default:
-      return fetchShowData(category);
+      return fetchShowData({category, infiniteScroll});
   }
 }
 
@@ -40,6 +40,6 @@ function fetchNextEpisode(state: { shows: { showData: Show } }, { payload }) {
 
 export default createMiddleware({
   [INITIALIZE_SHOWS]: goGetShowData,
-  [INFINITE_SCROLL_FETCH_SHOW_DATA]: goGetShowData,
+  [INFINITE_SCROLL_FETCH_SHOW_DATA]: (state, payload) => goGetShowData(state, payload, true),
   [FETCH_NEXT_EPISODE]: fetchNextEpisode
 });

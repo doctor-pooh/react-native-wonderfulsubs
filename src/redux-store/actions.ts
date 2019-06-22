@@ -32,10 +32,14 @@ export function fetchedShowData(target: {
   };
 }
 
-export function fetchShowData(category: string): Action<string> {
+export function fetchShowData(target: {
+  category: string;
+  infiniteScroll: boolean;
+}): Action<{ category: string; infiniteScroll: boolean }> {
+  const { category, infiniteScroll } = target;
   return {
     type: FETCH_SHOW_DATA,
-    payload: category
+    payload: { category, infiniteScroll }
   };
 }
 

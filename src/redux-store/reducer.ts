@@ -29,7 +29,13 @@ const updateShowData = (state, action) => {
   };
 };
 
-const isFetchingShowsData = state => ({
+const isFetchingShowsData = (state, { payload: { infiniteScroll } }) => ({
+  ...state,
+  data: infiniteScroll ? state.data : {},
+  isFetching: true
+});
+
+const isFetchingSearchData = state => ({
   ...state,
   data: {},
   isFetching: true
@@ -50,7 +56,7 @@ export default createReducer(
   },
   {
     [FETCH_SHOW_DATA]: isFetchingShowsData,
-    [FETCH_SEARCH_SHOW_DATA]: isFetchingShowsData,
+    [FETCH_SEARCH_SHOW_DATA]: isFetchingSearchData,
     [FETCH_SEASON_DATA]: isFetchingSeasonData,
     [FETCHED_SEARCH_SHOW_DATA]: fetchedSearchShowData,
     [FETCHED_SHOW_DATA]: fetchedShowData,

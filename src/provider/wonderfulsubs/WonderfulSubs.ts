@@ -46,10 +46,13 @@ export default class WonderfulSubs implements Provider {
     { name: "Popular", type: "popular" },
     { name: "Latest", type: "latest" }
   ];
+  public maxShowsToFetch = 120;
   private settings: object;
-  private showData: { [id: string]: ShowWithShortName };
+  private showData: {
+    [category: string]: { [id: string]: ShowWithShortName };
+  } = {};
 
-  private showPageIndex = undefined;
+  private showPageIndex: { [category: string]: number } = {};
   private currentCategory = this.categories[0].type;
 
   constructor(settings: object = undefined) {
@@ -68,32 +71,38 @@ export default class WonderfulSubs implements Provider {
   async fetchShows({
     type = "latest"
   }: Category): Promise<{ [id: string]: Show }> {
-    if (this.showPageIndex && type === this.currentCategory) {
+    if (this.showPageIndex[type] && type === this.currentCategory) {
       return this.fetchMoreShows(<Category>{ type });
     }
-    const response = await fetch(
-      `https://www.wonderfulsubs.com/api/v1/media/${type}?count=24`
-    );
+    if (!this.showData[type]) {
+      const response = await fetch(
+        `https://www.wonderfulsubs.com/api/v1/media/${type}?count=24`
+      );
+      const json = await response.json();
+      const showData = this.translateShows(json);
+      this.showData[type] = showsToLookupTable(showData);
+      this.showPageIndex[type] = 24;
+    }
     this.currentCategory = type;
-    const json = await response.json();
-    const showData = this.translateShows(json);
-    this.showData = showsToLookupTable(showData);
-    this.showPageIndex = 24;
-    return this.showData;
+    return this.showData[type];
   }
 
   private async fetchMoreShows({
     type
   }: Category): Promise<{ [id: string]: Show }> {
-    const startIndex = this.showPageIndex;
-    const response = await fetch(
-      `https://www.wonderfulsubs.com/api/v1/media/${type}?index=${startIndex}&count=24`
-    );
-    const json = await response.json();
-    const showData = showsToLookupTable(this.translateShows(json, startIndex));
-    this.showData = { ...this.showData, ...showData };
-    this.showPageIndex = 24 + this.showPageIndex;
-    return this.showData;
+    if (Object.keys(this.showData[type]).length < this.maxShowsToFetch) {
+      const startIndex = this.showPageIndex[type];
+      const response = await fetch(
+        `https://www.wonderfulsubs.com/api/v1/media/${type}?index=${startIndex}&count=24`
+      );
+      const json = await response.json();
+      const showData = showsToLookupTable(
+        this.translateShows(json, startIndex)
+      );
+      this.showData[type] = { ...this.showData[type], ...showData };
+      this.showPageIndex[type] = 24 + this.showPageIndex[type];
+    }
+    return this.showData[type];
   }
 
   async searchShows(target: {
@@ -105,19 +114,18 @@ export default class WonderfulSubs implements Provider {
       `https://www.wonderfulsubs.com/api/v1/media/search?q=${encodedQuery}`
     );
     const json = await response.json();
-    this.showData = showsToLookupTable(this.translateShows(json));
-    this.showPageIndex = undefined;
-    return this.showData;
+    this.showData["search"] = showsToLookupTable(this.translateShows(json));
+    return this.showData["search"];
   }
 
   async fetchShowDecription(target: { showId: string }): Promise<Show> {
     const { showId } = target;
-    return this.showData[showId];
+    return this.showData[this.currentCategory][showId];
   }
 
   async fetchSeasons(target: { showId: string }): Promise<Show> {
     const { showId } = target;
-    const show = <ShowWithShortName>this.showData[showId];
+    const show = <ShowWithShortName>this.showData[this.currentCategory][showId];
     if (show.seasonsFetched) {
       return show;
     }
@@ -128,12 +136,12 @@ export default class WonderfulSubs implements Provider {
     );
     const json = await response.json();
     const translatedSeasons = this.translateSeasons(json);
-    this.showData[showId] = {
+    this.showData[this.currentCategory][showId] = {
       ...show,
       seasonsFetched: true,
       seasons: translatedSeasons
     };
-    return this.showData[showId];
+    return this.showData[this.currentCategory][showId];
   }
 
   async fetchEpisodes(target: {
@@ -157,21 +165,30 @@ export default class WonderfulSubs implements Provider {
     episodeId: number;
   }): Promise<{ data: Show; source: Source }> {
     const { showId, seasonId, episodeId } = target;
-    const show = this.showData[showId];
+    const show = this.showData[this.currentCategory][showId];
     const season = show.seasons[seasonId];
     const episode = season.episodes[episodeId];
-    const preferredSourceToFetch: SourceWithFetchUrl = <SourceWithFetchUrl>(
-      this.findIdealSource(episode.sources)
-    );
-    if (preferredSourceToFetch.sourcesFetched) {
-      return { data: show, source: preferredSourceToFetch };
-    }
-    const response = await fetch(
-      `https://www.wonderfulsubs.com/api/v1/media/stream?code=${
-        preferredSourceToFetch.fetchUrl
-      }`
-    );
-    const json = await response.json();
+    let sources = [...episode.sources];
+    let json;
+    let preferredSourceToFetch: SourceWithFetchUrl;
+    let status;
+    do {
+      const { source, index } = this.findIdealSource(sources);
+      preferredSourceToFetch = <SourceWithFetchUrl>source;
+      if (preferredSourceToFetch.sourcesFetched) {
+        return { data: show, source: preferredSourceToFetch };
+      }
+      const response = await fetch(
+        `https://www.wonderfulsubs.com/api/v1/media/stream?code=${
+          preferredSourceToFetch.fetchUrl
+        }`
+      );
+      json = await response.json();
+      status = json.status;
+      if (status === 404) {
+        sources = sources.filter((_, i) => i !== index);
+      }
+    } while (sources.length > 0 && status === 404);
     const translatedSource = this.translateSources(
       json,
       preferredSourceToFetch
@@ -180,7 +197,9 @@ export default class WonderfulSubs implements Provider {
     return { data: show, source: translatedSource };
   }
 
-  private findIdealSource = (sources: Source[]): Source => {
+  private findIdealSource = (
+    sources: Source[]
+  ): { index: number; source: Source } => {
     const defaultSource = sources[0];
     const priority = [
       matches({ name: "ka", language: "dubs" }),
@@ -188,12 +207,19 @@ export default class WonderfulSubs implements Provider {
       matches({ language: "dubs" })
     ];
     let idealSource: Source;
+    let foundIndex = 0;
     priority.forEach(matcher => {
       if (!idealSource) {
-        idealSource = sources.find(matcher);
+        idealSource = sources.find((src, index) => {
+          const matched = matcher(src);
+          if (matched) {
+            foundIndex = index;
+          }
+          return matched;
+        });
       }
     });
-    return idealSource || defaultSource;
+    return { index: foundIndex, source: idealSource || defaultSource };
   };
 
   private translateSources = (

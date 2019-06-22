@@ -9,6 +9,7 @@ import {
 export interface Provider {
   key: string;
   categories: Category[];
+  maxShowsToFetch: number;
   getSettings(): object;
   setSettings(settings: object): object;
   fetchShows({ type } : Category): Promise<{[id: string]: Show}>;
