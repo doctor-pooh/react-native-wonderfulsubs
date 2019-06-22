@@ -12,17 +12,15 @@ import { connect } from "react-redux";
 import {
   StyleSheet,
   View,
-  ScrollView,
   ActivityIndicator,
   FlatList
 } from "react-native";
-import { StackActions } from "react-navigation";
-import { debounce } from "lodash";
+import { NavigationEvents } from "react-navigation";
 import * as actions from "../../redux-store/actions";
 import { EpisodeItem } from "../components";
-import { Show } from "../../types";
-import { DISPLAY_CONST, DATA_CONST } from "../../constants";
+import { Show, Episode } from "../../types";
 import { useStateValue } from "../context";
+import { TopActionBar } from "./TopActionBar";
 
 interface Props {
   navigation: any;
@@ -41,9 +39,29 @@ interface Props {
 
 const EpisodeList = (props: Props) => {
   const [state, dispatch] = useStateValue();
-  const { navigation, shows, style = {}, fetchSourceData } = props;
-  const { selectedSeason } = state;
+  const { shows, style = {}, fetchSourceData } = props;
+  const { selectedSeason, episodesWatched } = state;
   const { showData, isFetching } = shows;
+  const getWatchedEpisodes = () => {
+    (async () => {
+      if (
+        showData.id &&
+        selectedSeason != undefined &&
+        episodesWatched === undefined
+      ) {
+        const episodesWatchedData = await global
+          .__settings()
+          .getEpisodesWatched({
+            showId: showData.id,
+            seasonId: selectedSeason
+          });
+        dispatch({
+          type: "SET_EPISODES_WATCHED",
+          payload: episodesWatchedData
+        });
+      }
+    })();
+  };
 
   const episodeData =
     (showData &&
@@ -52,37 +70,56 @@ const EpisodeList = (props: Props) => {
       showData.seasons[selectedSeason].episodes) ||
     [];
 
+  let topBar: Episode;
   return (
-    <FlatList
-      data={episodeData.map(episode => ({ ...episode, key: `${episode.id}` }))}
-      renderItem={({ item }) => (
-        <EpisodeItem
-          key={item.id}
-          title={item.name}
-          description={item.description}
-          episodeNumber={item.episodeNumber}
-          imageSource={item.picture}
-          onPress={() =>
-            fetchSourceData({
-              showId: showData.id,
-              seasonId: selectedSeason,
-              episodeId: item.id
-            })
+    <View>
+      <NavigationEvents
+        onWillFocus={() => {
+          getWatchedEpisodes();
+        }}
+      />
+      <FlatList
+        data={[
+          { ...topBar, key: "topBar" },
+          ...episodeData.map(episode => ({
+            ...episode,
+            key: `${episode.id}`
+          }))
+        ]}
+        renderItem={({ item, index }) => {
+          if (index === 0) {
+            return <TopActionBar show={showData} />;
+          } else {
+            return (
+              <EpisodeItem
+                key={item.id}
+                title={item.name}
+                description={item.description}
+                episodeNumber={item.episodeNumber}
+                imageSource={item.picture}
+                watched={episodesWatched && episodesWatched[item.id]}
+                onPress={() =>
+                  fetchSourceData({
+                    showId: showData.id,
+                    seasonId: selectedSeason,
+                    episodeId: item.id
+                  })
+                }
+              />
+            );
           }
-        />
-      )}
-      maxToRenderPerBatch={80}
-      numColumns={1}
-      style={{ ...styles.scrollOuterContainer, ...style }}
-      contentContainerStyle={styles.scrollInnerContainer}
-    />
+        }}
+        maxToRenderPerBatch={80}
+        numColumns={1}
+        style={{ ...styles.scrollOuterContainer, ...style }}
+        contentContainerStyle={styles.scrollInnerContainer}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   scrollInnerContainer: {
-    paddingLeft: 12,
-    paddingRight: 12,
     marginBottom: 10,
     paddingBottom: 5
   },

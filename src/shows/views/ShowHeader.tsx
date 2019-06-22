@@ -9,7 +9,7 @@ import {
   TextInput
 } from "react-native";
 import { NavigationActions } from "react-navigation";
-import { debounce } from 'lodash';
+import { debounce } from "lodash";
 import { DISPLAY_CONST, DATA_CONST } from "../../constants";
 import { StateContext } from "../context";
 import { Show } from "../../types";
@@ -49,7 +49,7 @@ class ShowHeader extends Component<Props> {
 
     const onFocus = () => {
       resetSelectedShow();
-    }
+    };
 
     const onFocusDebounce = debounce(onFocus, 100);
 
@@ -61,12 +61,7 @@ class ShowHeader extends Component<Props> {
     };
 
     const { selectedShow, searchBarVisible } = state;
-    const {
-      shows,
-      searchShowData,
-      category,
-      navigation
-    } = this.props;
+    const { shows, searchShowData, category, navigation } = this.props;
     const showsData =
       (shows &&
         category &&
@@ -82,7 +77,7 @@ class ShowHeader extends Component<Props> {
         navigation.dispatch(
           NavigationActions.navigate({
             routeName: "Shows",
-            params: { category: newCategory },
+            params: { category: newCategory, oldCategory: category },
             key: newCategory
           })
         );
@@ -105,6 +100,20 @@ class ShowHeader extends Component<Props> {
       return (
         <View style={styles.categoryContainer}>
           {categories}
+          <Category
+            preferredFocus={
+              DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY === category
+            }
+            key={DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY}
+            title={"Bookmarks"}
+            onFocus={onFocusDebounce}
+            onPress={() =>
+              updateCategory(DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY)
+            }
+            selected={
+              DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY === categorySelection
+            }
+          />
           <Category
             preferredFocus={DATA_CONST.CATEGORIES.SEARCH_CATEGORY === category}
             key={DATA_CONST.CATEGORIES.SEARCH_CATEGORY}

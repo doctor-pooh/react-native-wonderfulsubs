@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { View, Image, Text, StyleSheet, Dimensions } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { Button } from "../../components";
 import { DISPLAY_CONST } from "../../constants";
 
@@ -11,6 +12,7 @@ interface Props {
   description?: string;
   episodeNumber?: number;
   onFocus: () => void;
+  watched: boolean;
 }
 
 let winSize = Dimensions.get("window");
@@ -24,6 +26,7 @@ export default class EpisodeItem extends Component<Props> {
     title: "None",
     description: "No description...",
     episodeNumber: -1,
+    watched: false,
     imageSource: "https://via.placeholder.com/240x360.png"
   };
 
@@ -35,7 +38,8 @@ export default class EpisodeItem extends Component<Props> {
       title,
       description,
       episodeNumber,
-      onFocus
+      onFocus,
+      watched
     } = this.props;
 
     return (
@@ -48,7 +52,7 @@ export default class EpisodeItem extends Component<Props> {
           underlayStyle={{ elevation: 0, zIndex: 9999 }}
           focusChildStyle={{
             elevation: 4,
-            backgroundColor: "rgba(90,90,90,1)",
+            backgroundColor: watched ? "rgba(0,200,120,0.60)" : "rgba(90,90,90,1)",
             opacity: 1
           }}
           onPress={onPress}
@@ -56,6 +60,7 @@ export default class EpisodeItem extends Component<Props> {
           style={styles.button}
         >
           <View style={styles.buttonContainer}>
+            {watched? <Icon name="check-circle" style={styles.watchedIcon} /> : <View />}
             <Image style={styles.image} source={imageSource && { uri: imageSource }} />
           </View>
         </Button>
@@ -82,7 +87,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     flexDirection: "row",
-    width: "auto"
+    width: "auto",
+    marginLeft: 12,
+    marginRight: 12,
   },
   episodeNumber: {
     opacity: 1,
@@ -125,6 +132,14 @@ const styles = StyleSheet.create({
   image: {
     width: DISPLAY_CONST.EPISODE_ITEM.ITEM_WIDTH * 0.55,
     height: DISPLAY_CONST.EPISODE_ITEM.ITEM_HEIGHT * 0.55
+  },
+  watchedIcon: {
+    position: "absolute",
+    right: 15,
+    bottom: 10,
+    zIndex: 999,
+    fontSize: 20,
+    color: "rgba(0,200,120,0.60)"
   },
   text: {
     color: "white",

@@ -33,13 +33,7 @@ interface Props {
 
 const ShowList = (props: Props) => {
   const [state, dispatch] = useStateValue();
-  const {
-    navigation,
-    infiniteScrollShowData,
-    fetchSeasonData,
-    category,
-    shows
-  } = props;
+  const { navigation, infiniteScrollShowData, category, shows } = props;
   const { isFetching } = shows;
   const resetCategory = () => {
     dispatch({
@@ -68,11 +62,11 @@ const ShowList = (props: Props) => {
         params: { showId: id }
       })
     );
-    //fetchSeasonData({ showId: item.id })
   };
 
   const showsData =
-    (shows && category && 
+    (shows &&
+      category &&
       Object.values(
         category === DATA_CONST.CATEGORIES.SEARCH_CATEGORY
           ? shows.searchData
@@ -83,13 +77,15 @@ const ShowList = (props: Props) => {
     <ShowItem
       key={item.id}
       imageSource={item.picture}
-      onPress={() => goToEpisodes(item.id)}
+      onPress={() => {
+        goToEpisodes(item.id);
+      }}
       onFocus={() => onFocusDebounce(item.id)}
     />
   ));
 
   const calculateScrollPercentage = (scrollPosition: number) => {
-    if (this.windowHeight && this.scrollWindowSize) { 
+    if (this.windowHeight && this.scrollWindowSize) {
       const scrollPositionWithOffset = this.scrollWindowSize + scrollPosition;
       return scrollPositionWithOffset / this.windowHeight;
     }
@@ -104,8 +100,9 @@ const ShowList = (props: Props) => {
       onScroll={({ nativeEvent: { contentOffset } }) => {
         if (
           showsData.length < DISPLAY_CONST.SHOW_LIST.MAX_SHOWS_ON_SCREEN &&
-          category && 
-          category !== DATA_CONST.CATEGORIES.SEARCH_CATEGORY
+          category &&
+          category !== DATA_CONST.CATEGORIES.SEARCH_CATEGORY &&
+          category !== DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY
         ) {
           const scrollPrecentage = calculateScrollPercentage(contentOffset.y);
           if (

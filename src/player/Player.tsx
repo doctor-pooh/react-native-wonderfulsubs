@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { AnyAction } from "redux";
 import { StyleSheet, View, Text, Animated, Dimensions } from "react-native";
-import KeepAwake from 'react-native-keep-awake';
+import KeepAwake from "react-native-keep-awake";
 import Icon from "react-native-vector-icons/FontAwesome";
 import VideoPlayer from "react-native-video";
 import { FirestickKeys } from "../components";
@@ -116,6 +116,7 @@ interface State {
   paused: boolean;
   fastForward: number;
   fastReverse: number;
+  finishedWatching: boolean;
   video: {
     duration: number;
     progress: {
@@ -133,6 +134,7 @@ class Player extends Component<Props, State> {
     paused: false,
     fastForward: 0,
     fastReverse: 0,
+    finishedWatching: false,
     video: {
       duration: undefined,
       progress: {
@@ -215,6 +217,7 @@ class Player extends Component<Props, State> {
       });
       if (nextEpisode && nextSeason) {
         fetchNextEpisode({ showId, seasonId, episodeId });
+        this.setState({ ...this.state, finishedWatching: false });
       } else {
         navigation.dispatch(
           StackActions.pop({
@@ -223,6 +226,19 @@ class Player extends Component<Props, State> {
         );
       }
     };
+    
+    const setShowWatched = watched => {
+      (async () => {
+        await global
+          .__settings()
+          .setShowWatched({
+            showId,
+            seasonId,
+            episodeId,
+            finishedWatching: watched
+          });
+      })();
+    }
 
     return (
       <View style={styles.container} hasTVPreferredFocus={true}>
@@ -232,12 +248,20 @@ class Player extends Component<Props, State> {
           }} // Can be a URL or a local file.
           style={styles.backgroundVideo}
           paused={this.state.paused}
-          onLoad={({ duration }) =>
-            this.setState({ video: { ...this.state.video, duration } })
-          }
-          onProgress={(progress: any) =>
-            this.setState({ video: { ...this.state.video, progress } })
-          }
+          onLoad={({ duration }) => {
+            this.setState({ video: { ...this.state.video, duration } });
+            setShowWatched(false)
+          }}
+          onProgress={(progress: any) => {
+            this.setState({ video: { ...this.state.video, progress } });
+            if (
+              progress.currentTime / this.state.video.duration >= 0.9 &&
+              !this.state.finishedWatching
+            ) {
+              setShowWatched(true)
+              this.setState({ ...this.state, finishedWatching: true });
+            }
+          }}
           onEnd={() => playNextEpisode()}
           ref={ref => {
             this.player = ref;
@@ -255,7 +279,7 @@ class Player extends Component<Props, State> {
           keyPressTimeOut={250}
           onPlay={() => {
             this.setState({ paused: !this.state.paused });
-            let displayobj; 
+            let displayobj;
             if (!this.state.paused) {
               displayobj = { icon: "play", text: "Play" };
               KeepAwake.activate();
@@ -269,9 +293,13 @@ class Player extends Component<Props, State> {
             });
           }}
           onLeftHold={() => {
+            const step =
+              this.state.fastReverse && this.state.fastReverse <= -60
+                ? -30
+                : -10;
             let reverseAmt = this.state.fastReverse
-              ? this.state.fastReverse - 10
-              : -10;
+              ? this.state.fastReverse + step
+              : step;
             if (this.state.video.progress.currentTime + reverseAmt < 0) {
               reverseAmt = -1 * this.state.video.progress.currentTime;
             }
@@ -304,9 +332,11 @@ class Player extends Component<Props, State> {
             });
           }}
           onRightHold={() => {
+            const step =
+              this.state.fastForward && this.state.fastForward >= 60 ? 30 : 10;
             let forwardAmt = this.state.fastForward
-              ? this.state.fastForward + 10
-              : 10;
+              ? this.state.fastForward + step
+              : step;
             if (
               this.state.video.progress.currentTime + forwardAmt >
               this.state.video.duration

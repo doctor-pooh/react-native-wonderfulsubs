@@ -6,7 +6,6 @@ export interface EpisodeDescription {
 export interface Episode extends EpisodeDescription{
     id: number,
     name: string,
-    episodeNumber: number,   
-    watched: boolean,
+    episodeNumber: number,
     sources: [any]
 }

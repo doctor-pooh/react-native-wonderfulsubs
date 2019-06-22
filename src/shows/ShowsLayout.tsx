@@ -6,7 +6,6 @@ import { NavigationEvents } from "react-navigation";
 import * as actions from "../redux-store/actions";
 import { ShowList, ShowHeader } from "./views";
 import { StateProvider } from "./context";
-import { DATA_CONST } from "../constants";
 
 interface Props {
   navigation: any;
@@ -27,7 +26,7 @@ const ShowsLayout = (props: Props) => {
     <View style={styles.container}>
       <NavigationEvents
         onWillFocus={() => {
-          if (category && category !== DATA_CONST.CATEGORIES.SEARCH_CATEGORY) {
+          if (category) {
             initializeShows(category);
           }
         }}

@@ -7,13 +7,17 @@ import {
 import createMiddleware from "../redux-utils/createMiddleware";
 import { Show } from "../types";
 import { findNextEpisode } from "../show-utils";
+import { DATA_CONST } from "../constants";
 
-function initialFetch(state, { payload }) {
-  return fetchShowData(payload);
-}
-
-function fetchMoreData(state, { payload }) {
-  return fetchShowData(payload);
+function goGetShowData(state, { payload: category }) {
+  switch (category) {
+    case DATA_CONST.CATEGORIES.SEARCH_CATEGORY:
+      return;
+    case DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY:
+      return fetchShowData(category);
+    default:
+      return fetchShowData(category);
+  }
 }
 
 function fetchNextEpisode(state: { shows: { showData: Show } }, { payload }) {
@@ -35,7 +39,7 @@ function fetchNextEpisode(state: { shows: { showData: Show } }, { payload }) {
 }
 
 export default createMiddleware({
-  [INITIALIZE_SHOWS]: initialFetch,
-  [INFINITE_SCROLL_FETCH_SHOW_DATA]: fetchMoreData,
+  [INITIALIZE_SHOWS]: goGetShowData,
+  [INFINITE_SCROLL_FETCH_SHOW_DATA]: goGetShowData,
   [FETCH_NEXT_EPISODE]: fetchNextEpisode
 });

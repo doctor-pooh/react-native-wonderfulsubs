@@ -10,6 +10,7 @@ interface Props {
   selected?: boolean;
   icon?: string;
   style?: object;
+  underlineWhenSelected?: boolean;
 }
 
 const TextButton = (props: Props) => {
@@ -20,6 +21,7 @@ const TextButton = (props: Props) => {
     selected,
     title,
     icon,
+    underlineWhenSelected = true,
     style = {}
   } = props;
   const styles = StyleSheet.create({
@@ -59,7 +61,9 @@ const TextButton = (props: Props) => {
   const stylesSelected = StyleSheet.create({
     container: {
       opacity: 1,
-      borderColor: "rgba(255,255,255,1)"
+      borderColor: underlineWhenSelected
+        ? "rgba(255,255,255,1)"
+        : "rgba(0,0,0,0)"
     },
     text: {
       textShadowColor: "rgba(255, 255, 255, 0.5)",
@@ -73,7 +77,7 @@ const TextButton = (props: Props) => {
     }
   });
 
-  const theFiller = (icon, title, selected) => {
+  const theFiller = ({ icon, title, selected }) => {
     let elements = [];
     if (icon) {
       elements.push(
@@ -115,7 +119,7 @@ const TextButton = (props: Props) => {
           ...(selected ? stylesSelected.container : {})
         }}
       >
-        {theFiller(icon, title, selected)}
+        {theFiller({ icon, title, selected })}
       </View>
     </TouchableHighlight>
   );

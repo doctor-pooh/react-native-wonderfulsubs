@@ -5,13 +5,10 @@ import {
   FETCH_SEARCH_SHOW_DATA,
   FETCH_SOURCE_DATA
 } from "./actionTypes";
-import {
-  updateShowData,
-  fetchedShowData,
-  searchedShowData
-} from "./actions";
+import { updateShowData, fetchedShowData, searchedShowData } from "./actions";
 import { AnyAction } from "redux";
 import { NavigationActions } from "react-navigation";
+import { DATA_CONST } from "../constants";
 
 function* fetchShowData({ payload: category }: AnyAction) {
   const data = yield global
@@ -37,12 +34,19 @@ function* fetchSourceData({
   const { data, source } = yield global
     .__provider()
     .fetchSources({ showId, seasonId, episodeId });
-  yield put(NavigationActions.navigate({
-    routeName: "Player",
-    key: "Player",
-    params: { uri: source.url, showId, seasonId, episodeId }
-  }))
+  yield put(
+    NavigationActions.navigate({
+      routeName: "Player",
+      key: "Player",
+      params: { uri: source.url, showId, seasonId, episodeId }
+    })
+  );
   yield put(updateShowData({ showId, data }));
+}
+
+function* fetchBookmarks() {
+  const data = yield global.__settings().getBookmarks();
+  yield put(fetchedShowData({ data }));
 }
 
 export function* fetchShowEpisodesAsync() {
@@ -50,7 +54,15 @@ export function* fetchShowEpisodesAsync() {
 }
 
 export function* fetchShowDataAsync() {
-  yield takeLeading(FETCH_SHOW_DATA, fetchShowData);
+  yield takeLeading(FETCH_SHOW_DATA, (action: AnyAction) => {
+    const category = action.payload;
+    switch (category) {
+      case DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY:
+        return fetchBookmarks();
+      default:
+        return fetchShowData(action);
+    }
+  });
 }
 
 export function* fetchSearchDataAsync() {

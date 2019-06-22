@@ -3,6 +3,7 @@ package com.firestickdemo;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.corbt.keepawake.KCKeepAwakePackage;
 import com.swmansion.reanimated.ReanimatedPackage;
 import com.swmansion.rnscreens.RNScreensPackage;
@@ -30,7 +31,8 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new KCKeepAwakePackage(),
+          new AsyncStoragePackage(),
+          new KCKeepAwakePackage(),
           new ReanimatedPackage(),
           new RNScreensPackage(),
           new RNGestureHandlerPackage(),

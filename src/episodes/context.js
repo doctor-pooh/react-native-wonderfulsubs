@@ -15,8 +15,15 @@ export const reducer = (state, action) => {
     case "SET_SELECTED_SEASON": {
       return {
         ...state,
+        episodesWatched: undefined,
         selectedSeason: action.payload
       };
+    }
+    case "SET_EPISODES_WATCHED": {
+      return {
+        ...state,
+        episodesWatched: action.payload
+      }
     }
     default: {
       return state;
