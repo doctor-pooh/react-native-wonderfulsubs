@@ -103,7 +103,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.firestickdemo"
+        applicationId "com.wonderfulsubs"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

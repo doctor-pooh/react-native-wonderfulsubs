@@ -125,7 +125,7 @@ const ShowList = (props: Props) => {
         {items}
         {isFetching && (
           <View style={styles.infiniteScrollingContainer}>
-            <ActivityIndicator size="large" color="#00ff00" />
+            <ActivityIndicator size="large" color="#ff9900" />
           </View>
         )}
       </View>
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgb(36,36,33)"
   },
   infiniteScrollingContainer: {
+    marginTop: 20,
     width: "100%",
     alignItems: "center",
     justifyContent: "center",

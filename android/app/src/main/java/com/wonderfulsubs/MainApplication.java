@@ -1,4 +1,4 @@
-package com.firestickdemo;
+package com.wonderfulsubs;
 
 import android.app.Application;
 

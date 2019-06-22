@@ -1,4 +1,4 @@
-package com.firestickdemo;
+package com.wonderfulsubs;
 
 import android.os.Bundle;
 import com.facebook.react.ReactFragmentActivity;
@@ -21,7 +21,7 @@ public class MainActivity extends ReactFragmentActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "FirestickDemo";
+    return "WonderfulSubs";
   }
 
   @Override // <--- Add this method if you want to react to keyDown
