@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, Dimensions, ActivityIndicator } from "react-native";
 import { NavigationEvents } from "react-navigation";
 import { AnyAction } from "redux";
 import { connect } from "react-redux";
@@ -11,13 +11,21 @@ const winSize = Dimensions.get("window");
 
 interface Props {
   navigation: any;
+  shows: {
+    isFetching: boolean;
+  };
   fetchSeasonData(showId: number): AnyAction;
 }
 
 const EpisodeLayout = props => {
-  const { navigation, fetchSeasonData } = props;
+  const {
+    navigation,
+    fetchSeasonData,
+    shows: { isFetching }
+  } = props;
+
   return (
-    <View style={styles.container}>
+    <View>
       <NavigationEvents
         onWillFocus={({
           state: {
@@ -28,8 +36,16 @@ const EpisodeLayout = props => {
         }}
       />
       <StateProvider>
-        <SeasonList style={styles.seasonContainer} />
-        <EpisodeList style={styles.episodeContainer} />
+        {isFetching ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator style={styles.loadingIndicator} size="large" color="#ff9900" />
+          </View>
+        ) : (
+          <View style={styles.container}>
+            <SeasonList style={styles.seasonContainer} />
+            <EpisodeList style={styles.episodeContainer} />
+          </View>
+        )}
       </StateProvider>
     </View>
   );
@@ -44,6 +60,15 @@ const styles = StyleSheet.create({
   },
   episodeContainer: {
     width: winSize.width - 130
+  },
+  loadingContainer: {
+    width: winSize.width,
+    height: winSize.height
+  },
+  loadingIndicator: {
+    position: "absolute",
+    top: "50%",
+    left: "50%"
   }
 });
 
@@ -51,7 +76,9 @@ const mapDispatchToProps = {
   ...actions
 };
 
-const mapStateToProps = () => ({});
+const mapStateToProps = state => ({
+  shows: state.shows
+});
 
 export default connect(
   mapStateToProps,

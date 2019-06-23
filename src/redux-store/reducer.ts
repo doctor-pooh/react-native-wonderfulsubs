@@ -8,6 +8,7 @@ import {
   FETCHED_SEARCH_SHOW_DATA,
   FETCH_SEASON_DATA
 } from "./actionTypes";
+import { StackActions, NavigationActions } from "react-navigation";
 
 const fetchedShowData = (state, action) => ({
   ...state,
@@ -25,7 +26,8 @@ const updateShowData = (state, action) => {
   const { id, data } = action.payload;
   return {
     ...state,
-    showData: data
+    showData: data,
+    isFetching: false
   };
 };
 
@@ -47,6 +49,21 @@ const isFetchingSeasonData = state => ({
   isFetching: true
 });
 
+const navigatingToScreen = (state, payload) => {
+  const { routeName } = payload;
+  switch (routeName) {
+    case "Episodes":
+    case "Shows":
+    case "Player":
+      return {
+        ...state,
+        isFetching: true
+      }
+    default:
+      return state;
+  }
+}
+
 export default createReducer(
   {
     data: {},
@@ -60,6 +77,8 @@ export default createReducer(
     [FETCH_SEASON_DATA]: isFetchingSeasonData,
     [FETCHED_SEARCH_SHOW_DATA]: fetchedSearchShowData,
     [FETCHED_SHOW_DATA]: fetchedShowData,
-    [UPDATE_SHOW_DATA]: updateShowData
+    [UPDATE_SHOW_DATA]: updateShowData,
+    [StackActions.PUSH]: navigatingToScreen,
+    [NavigationActions.NAVIGATE]: navigatingToScreen
   }
 );
