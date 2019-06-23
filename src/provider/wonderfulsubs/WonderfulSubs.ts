@@ -9,6 +9,17 @@ import {
   SeasonType
 } from "../../types";
 
+const fetch_retry = async (url, options, n) => {
+  for (let i = 0; i < n; i++) {
+      try {
+          return await fetch(url, options);
+      } catch (err) {
+          const isLastAttempt = i + 1 === n;
+          // if (isLastAttempt) throw err;
+      }
+  }
+};
+
 const showShortName = ({ url }) => {
   return url.substring(url.indexOf("watch/") + 6);
 };
@@ -97,8 +108,8 @@ export default class WonderfulSubs extends Provider {
       return this.fetchMoreShows(<Category>{ type });
     }
     if (!this.showData[type]) {
-      const response = await fetch(
-        `https://www.wonderfulsubs.com/api/v1/media/${type}?count=24`
+      const response = await fetch_retry(
+        `https://www.wonderfulsubs.com/api/v1/media/${type}?count=24`, undefined, 3
       );
       const json = await response.json();
       const showData = this.translateShows(json);
@@ -116,11 +127,10 @@ export default class WonderfulSubs extends Provider {
   }: Category): Promise<{ [id: string]: Show }> {
     if (Object.keys(this.showData[type]).length < this.maxShowsToFetch) {
       const startIndex = this.showPageIndex[type];
-      const response = await fetch(
-        `https://www.wonderfulsubs.com/api/v1/media/${type}?index=${startIndex}&count=24`
+      const response = await fetch_retry(
+        `https://www.wonderfulsubs.com/api/v1/media/${type}?index=${startIndex}&count=24`, undefined, 3
       );
       const json = await response.json();
-      const bookmarkedShows = await this.settings.getBookmarks();
       const showData = showsToLookupTable(
         this.translateShows(json, startIndex)
       );
@@ -137,8 +147,8 @@ export default class WonderfulSubs extends Provider {
   }): Promise<{ [id: string]: Show }> {
     const { query } = target;
     const encodedQuery = encodeURIComponent(query);
-    const response = await fetch(
-      `https://www.wonderfulsubs.com/api/v1/media/search?q=${encodedQuery}`
+    const response = await fetch_retry(
+      `https://www.wonderfulsubs.com/api/v1/media/search?q=${encodedQuery}`, undefined, 3
     );
     const json = await response.json();
     this.currentCategory = "search";
@@ -159,10 +169,10 @@ export default class WonderfulSubs extends Provider {
     if (show.seasonsFetched) {
       return show;
     }
-    const response = await fetch(
+    const response = await fetch_retry(
       `https://www.wonderfulsubs.com/api/v1/media/series?series=${
         show.shortName
-      }`
+      }`, undefined, 3
     );
     const json = await response.json();
     const episodesWatched = async seasonId =>
@@ -213,10 +223,10 @@ export default class WonderfulSubs extends Provider {
       if (preferredSourceToFetch.sourcesFetched) {
         return { data: show, source: preferredSourceToFetch };
       }
-      const response = await fetch(
+      const response = await fetch_retry(
         `https://www.wonderfulsubs.com/api/v1/media/stream?code=${
           preferredSourceToFetch.fetchUrl
-        }`
+        }`, undefined, 3
       );
       json = await response.json();
       status = json.status;
