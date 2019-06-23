@@ -97,6 +97,7 @@ const ShowList = (props: Props) => {
       onLayout={({ nativeEvent: { layout } }) =>
         (this.scrollWindowSize = layout.height)
       }
+      removeClippedSubviews={false}
       onScroll={({ nativeEvent: { contentOffset } }) => {
         if (
           showsData.length < global.__provider().maxShowsToFetch &&

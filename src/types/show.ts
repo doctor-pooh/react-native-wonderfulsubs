@@ -10,6 +10,7 @@ export interface ShowCoreInformation {
   name: string;
   description: string;
   seasons: Season[];
+  bookmarked?: boolean;
 }
 
 export interface Show extends ShowDescription, ShowCoreInformation {

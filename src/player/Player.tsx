@@ -226,11 +226,12 @@ class Player extends Component<Props, State> {
         );
       }
     };
-    
+
     const setShowWatched = watched => {
       (async () => {
         await global
-          .__settings()
+          .__provider()
+          .getSettings()
           .setShowWatched({
             showId,
             seasonId,
@@ -238,7 +239,7 @@ class Player extends Component<Props, State> {
             finishedWatching: watched
           });
       })();
-    }
+    };
 
     return (
       <View style={styles.container} hasTVPreferredFocus={true}>
@@ -250,7 +251,7 @@ class Player extends Component<Props, State> {
           paused={this.state.paused}
           onLoad={({ duration }) => {
             this.setState({ video: { ...this.state.video, duration } });
-            setShowWatched(false)
+            setShowWatched(false);
           }}
           onProgress={(progress: any) => {
             this.setState({ video: { ...this.state.video, progress } });
@@ -258,7 +259,7 @@ class Player extends Component<Props, State> {
               progress.currentTime / this.state.video.duration >= 0.9 &&
               !this.state.finishedWatching
             ) {
-              setShowWatched(true)
+              setShowWatched(true);
               this.setState({ ...this.state, finishedWatching: true });
             }
           }}

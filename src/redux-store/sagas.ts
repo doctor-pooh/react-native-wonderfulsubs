@@ -44,7 +44,7 @@ function* fetchSourceData({
 }
 
 function* fetchBookmarks() {
-  const data = yield global.__settings().getBookmarks();
+  const data = yield global.__provider().getSettings().getBookmarks();
   yield put(fetchedShowData({ data }));
 }
 

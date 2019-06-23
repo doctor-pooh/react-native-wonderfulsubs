@@ -5,8 +5,8 @@
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "dev": "react-native run-android",
-    "release": "react-native run-android --variant=\"release\"",
-    "build": "cd android && gradlew.bat assembleRelease",
+    "dev:release": "react-native run-android --variant=\"release\"",
+    "build": "cd android && gradlew.bat assembleRelease", 
     "test": "jest"
   },
   "dependencies": {

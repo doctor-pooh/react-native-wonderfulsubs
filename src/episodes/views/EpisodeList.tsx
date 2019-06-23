@@ -1,11 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
-
 import React from "react";
 import { AnyAction } from "redux";
 import { connect } from "react-redux";
@@ -37,26 +29,6 @@ const EpisodeList = (props: Props) => {
   const { shows, style = {}, fetchSourceData } = props;
   const { selectedSeason, episodesWatched } = state;
   const { showData, isFetching } = shows;
-  const getWatchedEpisodes = () => {
-    (async () => {
-      if (
-        showData.id &&
-        selectedSeason != undefined &&
-        episodesWatched === undefined
-      ) {
-        const episodesWatchedData = await global
-          .__settings()
-          .getEpisodesWatched({
-            showId: showData.id,
-            seasonId: selectedSeason
-          });
-        dispatch({
-          type: "SET_EPISODES_WATCHED",
-          payload: episodesWatchedData
-        });
-      }
-    })();
-  };
 
   const episodeData =
     (showData &&
@@ -65,30 +37,35 @@ const EpisodeList = (props: Props) => {
       showData.seasons[selectedSeason].episodes) ||
     [];
 
-  let focusedEpisodeId = undefined;
-  const episodeList = episodeData.map(episode => {
-    if (episodesWatched && !episodesWatched[episode.id] && !focusedEpisodeId) {
-      focusedEpisodeId = episode.id;
+  let lastWatchedEpisodeIndex = undefined;
+  const episodeList = episodeData.map((episode, index) => {
+    if (episode.watched) {
+      lastWatchedEpisodeIndex = index;
     }
     return {
       ...episode,
       key: `${episode.id}`
     };
   });
-  focusedEpisodeId =
-    focusedEpisodeId
-      ? focusedEpisodeId
-      : episodeList.length > 0 && episodeList[0].id;
+
+  let focusedEpisodeId = undefined;
+  if (episodeList.length > 0) {
+    if (
+      lastWatchedEpisodeIndex &&
+      lastWatchedEpisodeIndex < episodeList.length - 1
+    ) {
+      focusedEpisodeId = episodeList[lastWatchedEpisodeIndex + 1].id;
+    } else {
+      focusedEpisodeId = episodeList[0].id;
+    }
+  }
+
   let topBar: Episode;
   return (
     <View>
-      <NavigationEvents
-        onWillFocus={() => {
-          getWatchedEpisodes();
-        }}
-      />
       <FlatList
         data={[{ ...topBar, key: "topBar" }, ...episodeList]}
+        removeClippedSubviews={false}
         renderItem={({ item, index }) => {
           if (index === 0) {
             return <TopActionBar show={showData} />;
@@ -100,7 +77,7 @@ const EpisodeList = (props: Props) => {
                 description={item.description}
                 episodeNumber={item.episodeNumber}
                 imageSource={item.picture}
-                watched={episodesWatched && episodesWatched[item.id]}
+                watched={item.watched}
                 preferredFocus={item.id === focusedEpisodeId}
                 onPress={() =>
                   fetchSourceData({

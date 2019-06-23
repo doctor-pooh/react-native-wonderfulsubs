@@ -16,37 +16,33 @@ export class TopActionBar extends Component<Props, State> {
   state = {
     bookmarked: undefined
   };
-
+  componentWillReceiveProps() {
+    const { show } = this.props;
+    if (show.bookmarked) {
+      this.setState({ bookmarked: true });
+    }
+  }
   render() {
     const { show } = this.props;
     const { bookmarked } = this.state;
     const toggleBookmark = async () => {
       if (!bookmarked) {
-        await global.__settings().addBookmark(show);
+        await global
+          .__provider()
+          .getSettings()
+          .addBookmark(show);
         this.setState({ bookmarked: true });
       } else {
-        await global.__settings().removeBookmark(show.id);
+        await global
+          .__provider()
+          .getSettings()
+          .removeBookmark(show.id);
         this.setState({ bookmarked: false });
       }
-    };
-    const getShowBookmark = showId => {
-      (async () => {
-        const bookmark = await global.__settings().getBookmark(showId);
-        this.setState({ bookmarked: !!bookmark });
-      })();
     };
 
     return (
       <View style={styles.container}>
-        <NavigationEvents
-          onWillFocus={({
-            state: {
-              params: { showId }
-            }
-          }) => {
-            getShowBookmark(showId);
-          }}
-        />
         <TextButton
           style={styles.textButton}
           icon={bookmarked ? "heart" : "heart-o"}

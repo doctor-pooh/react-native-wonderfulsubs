@@ -3,6 +3,22 @@ import { flow, omit, pick, set, get } from "lodash/fp";
 import AsyncStorage from "@react-native-community/async-storage";
 
 const settings = () => {
+  const callbackRegister = {
+    onBookmarkAdded: (...args) => {},
+    onBookmarkRemoved: (...args) => {},
+    onSetShowWatched: (...args) => {}
+  };
+  
+  const callBackByKey = () => {
+    return Object.keys(callbackRegister).reduce(
+      (obj: object, registerKey) => ({
+        ...obj,
+        [registerKey]: fn => (callbackRegister[registerKey] = fn)
+      }),
+      {}
+    );
+  };
+
   const addBookmark = async (show: Show) => {
     let bookmarks = JSON.parse(await AsyncStorage.getItem("@bookmarks"));
     if (!bookmarks) {
@@ -21,6 +37,7 @@ const settings = () => {
       omit(["seasons"]),
       pick(Object.keys(dummy))
     )(show);
+    callbackRegister.onBookmarkAdded({ bookmark: bookmarks[show.id] });
     await AsyncStorage.setItem("@bookmarks", JSON.stringify(bookmarks));
     return bookmarks;
   };
@@ -31,6 +48,7 @@ const settings = () => {
       bookmarks = {};
     }
     delete bookmarks[id];
+    callbackRegister.onBookmarkRemoved({ id });
     await AsyncStorage.setItem("@bookmarks", JSON.stringify(bookmarks));
     return bookmarks;
   };
@@ -49,27 +67,40 @@ const settings = () => {
       bookmarks = {};
     }
     return bookmarks[id];
-  }
+  };
 
-  const setShowWatched = async ({showId, seasonId, episodeId, finishedWatching = true}) => {
-      let watched = JSON.parse(await AsyncStorage.getItem("@watched"));
-      if (!watched) {
-          watched = {};
-      }
-      watched = set(`${showId}.${seasonId}.${episodeId}`, finishedWatching)(watched);
-      await AsyncStorage.setItem("@watched", JSON.stringify(watched));
-      return watched;
-  }
-
-  const getEpisodesWatched = async ({showId, seasonId}) => {
+  const setShowWatched = async ({
+    showId,
+    seasonId,
+    episodeId,
+    finishedWatching = true
+  }) => {
     let watched = JSON.parse(await AsyncStorage.getItem("@watched"));
     if (!watched) {
-        watched = {};
+      watched = {};
+    }
+    watched = set(`${showId}.${seasonId}.${episodeId}`, finishedWatching)(
+      watched
+    );
+    callbackRegister.onSetShowWatched({
+      showId,
+      seasonId,
+      episodeId,
+      finishedWatching
+    });
+    await AsyncStorage.setItem("@watched", JSON.stringify(watched));
+    return watched;
+  };
+
+  const getEpisodesWatched = async ({ showId, seasonId }) => {
+    let watched = JSON.parse(await AsyncStorage.getItem("@watched"));
+    if (!watched) {
+      watched = {};
     }
     const episodesWatched = get(`${showId}.${seasonId}`)(watched);
     console.log();
     return episodesWatched;
-  }
+  };
 
   return {
     addBookmark,
@@ -77,7 +108,9 @@ const settings = () => {
     getBookmarks,
     getBookmark,
     setShowWatched,
-    getEpisodesWatched
+    getEpisodesWatched,
+    /********* CALLBACKS *********/
+    ...callBackByKey()
   };
 };
 
