@@ -10,13 +10,11 @@ import { useStateValue } from "../context";
 import { TopActionBar } from "./TopActionBar";
 
 interface Props {
-  navigation: any;
-  showId: number;
-  shows: {
+  shows?: {
     isFetching: boolean;
     showData: Show;
   };
-  fetchSourceData(target: {
+  fetchSourceData?(target: {
     showId: string;
     seasonId: number;
     episodeId: number;

@@ -8,15 +8,17 @@ import {
   Source,
   SeasonType
 } from "../../types";
+import Settings from "../../settings/settingsAbstract";
+import DefaultSettingsController from "../../settings/settings";
 
 const fetch_retry = async (url, options, n) => {
   for (let i = 0; i < n; i++) {
-      try {
-          return await fetch(url, options);
-      } catch (err) {
-          const isLastAttempt = i + 1 === n;
-          // if (isLastAttempt) throw err;
-      }
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      const isLastAttempt = i + 1 === n;
+      // if (isLastAttempt) throw err;
+    }
   }
 };
 
@@ -77,9 +79,9 @@ export default class WonderfulSubs extends Provider {
   private showPageIndex: { [category: string]: number } = {};
   private currentCategory = this.categories[0].type;
 
-  constructor(settings) {
+  constructor(settings: Settings = new DefaultSettingsController()) {
     super(settings);
-    settings.onSetShowWatched(this.onShowWatched.bind(this));
+    settings.on("setEpisodeWatched", this.onShowWatched.bind(this));
   }
 
   onShowWatched({ showId, seasonId, episodeId, finishedWatching }) {
@@ -92,11 +94,11 @@ export default class WonderfulSubs extends Provider {
     }
   }
 
-  getSettings(): object {
+  getSettings(): Settings {
     return this.settings;
   }
 
-  setSettings(settings: object): object {
+  setSettings(settings: Settings): Settings {
     this.settings = settings;
     return this.settings;
   }
@@ -109,7 +111,9 @@ export default class WonderfulSubs extends Provider {
     }
     if (!this.showData[type]) {
       const response = await fetch_retry(
-        `https://www.wonderfulsubs.com/api/v1/media/${type}?count=24`, undefined, 3
+        `https://www.wonderfulsubs.com/api/v1/media/${type}?count=24`,
+        undefined,
+        3
       );
       const json = await response.json();
       const showData = this.translateShows(json);
@@ -128,7 +132,9 @@ export default class WonderfulSubs extends Provider {
     if (Object.keys(this.showData[type]).length < this.maxShowsToFetch) {
       const startIndex = this.showPageIndex[type];
       const response = await fetch_retry(
-        `https://www.wonderfulsubs.com/api/v1/media/${type}?index=${startIndex}&count=24`, undefined, 3
+        `https://www.wonderfulsubs.com/api/v1/media/${type}?index=${startIndex}&count=24`,
+        undefined,
+        3
       );
       const json = await response.json();
       const showData = showsToLookupTable(
@@ -148,11 +154,15 @@ export default class WonderfulSubs extends Provider {
     const { query } = target;
     const encodedQuery = encodeURIComponent(query);
     const response = await fetch_retry(
-      `https://www.wonderfulsubs.com/api/v1/media/search?q=${encodedQuery}`, undefined, 3
+      `https://www.wonderfulsubs.com/api/v1/media/search?q=${encodedQuery}`,
+      undefined,
+      3
     );
     const json = await response.json();
     this.currentCategory = "search";
-    this.showData[this.currentCategory] = showsToLookupTable(this.translateShows(json));
+    this.showData[this.currentCategory] = showsToLookupTable(
+      this.translateShows(json)
+    );
     const bookmarkedShows = await this.settings.getBookmarks();
     checkBookmarks(this.showData[this.currentCategory], bookmarkedShows);
     return this.showData[this.currentCategory];
@@ -172,7 +182,9 @@ export default class WonderfulSubs extends Provider {
     const response = await fetch_retry(
       `https://www.wonderfulsubs.com/api/v1/media/series?series=${
         show.shortName
-      }`, undefined, 3
+      }`,
+      undefined,
+      3
     );
     const json = await response.json();
     const episodesWatched = async seasonId =>
@@ -226,7 +238,9 @@ export default class WonderfulSubs extends Provider {
       const response = await fetch_retry(
         `https://www.wonderfulsubs.com/api/v1/media/stream?code=${
           preferredSourceToFetch.fetchUrl
-        }`, undefined, 3
+        }`,
+        undefined,
+        3
       );
       json = await response.json();
       status = json.status;

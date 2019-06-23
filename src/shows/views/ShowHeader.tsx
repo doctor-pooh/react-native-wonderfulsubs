@@ -21,15 +21,15 @@ let winSize = Dimensions.get("window");
 
 interface Props {
   style: object;
-  shows: {
+  shows?: {
     data: Show[];
     searchData: Show[];
   };
   category: string;
   navigation: any;
-  initializeShows(category: string): AnyAction;
-  updateCategory: (category: string) => AnyAction;
-  searchShowData: (query: string) => AnyAction;
+  initializeShows?(category: string): AnyAction;
+  updateCategory?: (category: string) => AnyAction;
+  searchShowData?: (query: string) => AnyAction;
 }
 
 class ShowHeader extends Component<Props> {

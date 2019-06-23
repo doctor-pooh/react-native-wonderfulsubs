@@ -14,10 +14,10 @@ interface Props {
   shows: {
     isFetching: boolean;
   };
-  fetchSeasonData(showId: number): AnyAction;
+  fetchSeasonData(target: {showId: string}): AnyAction;
 }
 
-const EpisodeLayout = props => {
+const EpisodeLayout = (props: Props) => {
   const {
     navigation,
     fetchSeasonData,

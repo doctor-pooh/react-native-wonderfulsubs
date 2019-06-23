@@ -3,20 +3,19 @@ import {
   Category,
   Source
 } from "../types";
-
-
+import Settings from "../settings/settingsAbstract";
 
 export abstract class Provider {
-  constructor(public settings: any) {
+  constructor(public settings?: Settings) {
     this.settings = settings
   }
   key: string;
   categories: Category[];
   maxShowsToFetch: number;
-  getSettings(): any {
+  getSettings(): Settings {
     return this.settings;
   }
-  abstract setSettings(settings: object): object;
+  abstract setSettings(settings: Settings): Settings;
   abstract fetchShows({ type } : Category): Promise<{[id: string]: Show}>;
   abstract fetchShowDecription(target: { showId: string }): Promise<Show>;
   abstract searchShows(target: {query: string}): Promise<{[id: string]: Show}>;

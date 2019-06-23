@@ -21,9 +21,7 @@ import { Show } from "../../types";
 import { useStateValue } from "../context";
 
 interface Props {
-  navigation: any;
-  showId: number;
-  shows: {
+  shows?: {
     isFetching: boolean;
     showData: Show;
   };
@@ -32,7 +30,7 @@ interface Props {
 
 const SeasonList = (props: Props) => {
   const [state, dispatch] = useStateValue();
-  const { navigation, showId, shows, style = {} } = props;
+  const { shows, style = {} } = props;
   const { selectedSeason } = state;
   const { showData, isFetching } = shows;
 

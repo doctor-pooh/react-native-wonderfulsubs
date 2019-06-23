@@ -5,13 +5,10 @@ import { WonderfulSubs } from "./provider/wonderfulsubs";
 import { Provider as ProviderAbstract } from "./provider/providerAbstract";
 import { Alert } from "react-native";
 import { buildStore } from "./store";
-import settingsController from "./settings/settings";
 
 useScreens();
-const settings = settingsController();
 
-const provider = new WonderfulSubs(settings);
-
+const provider = new WonderfulSubs();
 global.__provider = (): ProviderAbstract => provider;
 const router = require("./router");
 const { RouterComponent, navReducer } = router;
