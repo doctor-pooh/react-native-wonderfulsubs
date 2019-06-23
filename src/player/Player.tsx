@@ -227,12 +227,12 @@ class Player extends Component<Props, State> {
       }
     };
 
-    const setShowWatched = watched => {
+    const setEpisodeWatched = watched => {
       (async () => {
         await global
           .__provider()
           .getSettings()
-          .setShowWatched({
+          .setEpisodeWatched({
             showId,
             seasonId,
             episodeId,
@@ -251,7 +251,7 @@ class Player extends Component<Props, State> {
           paused={this.state.paused}
           onLoad={({ duration }) => {
             this.setState({ video: { ...this.state.video, duration } });
-            setShowWatched(false);
+            setEpisodeWatched(false);
           }}
           onProgress={(progress: any) => {
             this.setState({ video: { ...this.state.video, progress } });
@@ -259,7 +259,7 @@ class Player extends Component<Props, State> {
               progress.currentTime / this.state.video.duration >= 0.9 &&
               !this.state.finishedWatching
             ) {
-              setShowWatched(true);
+              setEpisodeWatched(true);
               this.setState({ ...this.state, finishedWatching: true });
             }
           }}
