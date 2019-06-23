@@ -141,10 +141,11 @@ export default class WonderfulSubs extends Provider {
       `https://www.wonderfulsubs.com/api/v1/media/search?q=${encodedQuery}`
     );
     const json = await response.json();
-    this.showData["search"] = showsToLookupTable(this.translateShows(json));
+    this.currentCategory = "search";
+    this.showData[this.currentCategory] = showsToLookupTable(this.translateShows(json));
     const bookmarkedShows = await this.settings.getBookmarks();
-    checkBookmarks(this.showData["search"], bookmarkedShows);
-    return this.showData["search"];
+    checkBookmarks(this.showData[this.currentCategory], bookmarkedShows);
+    return this.showData[this.currentCategory];
   }
 
   async fetchShowDecription(target: { showId: string }): Promise<Show> {
