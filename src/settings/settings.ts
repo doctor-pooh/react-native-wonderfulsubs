@@ -16,13 +16,14 @@ export default class DefaultSettingsController extends Settings {
       description: "",
       wallArt: "",
       picture: "",
-      provider: ""
+      provider: "",
+      bookmarked: undefined
     };
     bookmarks[show.id] = flow(
       omit(["seasons"]),
       pick(Object.keys(dummy))
-    )(show);
-    this.trigger("bookmarkAdded", { bookmark: bookmarks[show.id] });
+    )(<Show>{ ...show, bookmarked: true });
+    this.trigger("bookmarkAdded", { bookmarks: bookmarks });
     await AsyncStorage.setItem("@bookmarks", JSON.stringify(bookmarks));
     return bookmarks;
   }
@@ -33,7 +34,7 @@ export default class DefaultSettingsController extends Settings {
       bookmarks = {};
     }
     delete bookmarks[id];
-    this.trigger("bookmarkRemoved", { id });
+    this.trigger("bookmarkRemoved", { bookmarks });
     await AsyncStorage.setItem("@bookmarks", JSON.stringify(bookmarks));
     return bookmarks;
   }

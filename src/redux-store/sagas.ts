@@ -43,11 +43,6 @@ function* fetchSourceData({
   yield put(updateShowData({ showId, data }));
 }
 
-function* fetchBookmarks() {
-  const data = yield global.__provider().getSettings().getBookmarks();
-  yield put(fetchedShowData({ data }));
-}
-
 export function* fetchShowEpisodesAsync() {
   yield takeLeading(FETCH_SEASON_DATA, fetchSeasonData);
 }
@@ -56,8 +51,6 @@ export function* fetchShowDataAsync() {
   yield takeLeading(FETCH_SHOW_DATA, (action: AnyAction) => {
     const { category } = action.payload;
     switch (category) {
-      case DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY:
-        return fetchBookmarks();
       default:
         return fetchShowData(action);
     }

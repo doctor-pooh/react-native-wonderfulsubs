@@ -43,7 +43,7 @@ const checkBookmarks = (
   for (const key of Object.keys(shows)) {
     shows[key] = {
       ...shows[key],
-      bookmarked: !!bookmarks[key]
+      bookmarked: bookmarks && !!bookmarks[key]
     };
   }
 };
@@ -69,7 +69,8 @@ export default class WonderfulSubs extends Provider {
   public key = "wonderfulsubs";
   public categories = [
     { name: "Popular", type: "popular" },
-    { name: "Latest", type: "latest" }
+    { name: "Latest", type: "latest" },
+    { name: "Bookmarks", type: "bookmarks" }
   ];
   public maxShowsToFetch = 120;
   private showData: {
@@ -82,6 +83,8 @@ export default class WonderfulSubs extends Provider {
   constructor(settings: Settings = new DefaultSettingsController()) {
     super(settings);
     settings.on("setEpisodeWatched", this.onShowWatched.bind(this));
+    settings.on("bookmarkAdded", this.onBookmarkAdded.bind(this));
+    settings.on("bookmarkRemoved", this.onBookmarkRemoved.bind(this));
   }
 
   onShowWatched({ showId, seasonId, episodeId, finishedWatching }) {
@@ -92,6 +95,14 @@ export default class WonderfulSubs extends Provider {
       const episode = season.episodes.find(({ id }) => id === episodeId);
       episode.watched = finishedWatching;
     }
+  }
+
+  onBookmarkAdded({ bookmarks }) {
+    this.showData["bookmarks"] = bookmarks;
+  }
+
+  onBookmarkRemoved({ bookmarks }) {
+    this.showData["bookmarks"] = bookmarks;
   }
 
   getSettings(): Settings {
@@ -106,6 +117,10 @@ export default class WonderfulSubs extends Provider {
   async fetchShows({
     type = "latest"
   }: Category): Promise<{ [id: string]: Show }> {
+    if (type === "bookmarks") {
+      this.currentCategory = type;
+      return await this.fetchBookmarks();
+    }
     if (this.showPageIndex[type] && type === this.currentCategory) {
       return this.fetchMoreShows(<Category>{ type });
     }
@@ -121,9 +136,17 @@ export default class WonderfulSubs extends Provider {
       this.showPageIndex[type] = 24;
     }
     this.currentCategory = type;
-    const bookmarkedShows = await this.settings.getBookmarks();
-    checkBookmarks(this.showData[type], bookmarkedShows);
+    checkBookmarks(this.showData[type], this.showData["bookmarks"]);
     return this.showData[type];
+  }
+
+  private async fetchBookmarks(): Promise<{ [id: string]: Show }> {
+    if (!this.showData["bookmarks"]) {
+      this.showData["bookmarks"] = <{ [id: string]: ShowWithShortName }>(
+        await this.settings.getBookmarks()
+      );
+    }
+    return this.showData["bookmarks"];
   }
 
   private async fetchMoreShows({
@@ -144,7 +167,7 @@ export default class WonderfulSubs extends Provider {
       this.showPageIndex[type] = 24 + this.showPageIndex[type];
     }
     const bookmarkedShows = await this.settings.getBookmarks();
-    checkBookmarks(this.showData[type], bookmarkedShows);
+    checkBookmarks(this.showData[type], this.showData["bookmarks"]);
     return this.showData[type];
   }
 
@@ -164,7 +187,10 @@ export default class WonderfulSubs extends Provider {
       this.translateShows(json)
     );
     const bookmarkedShows = await this.settings.getBookmarks();
-    checkBookmarks(this.showData[this.currentCategory], bookmarkedShows);
+    checkBookmarks(
+      this.showData[this.currentCategory],
+      this.showData["bookmarks"]
+    );
     return this.showData[this.currentCategory];
   }
 
@@ -181,7 +207,7 @@ export default class WonderfulSubs extends Provider {
     }
     const response = await fetch_retry(
       `https://www.wonderfulsubs.com/api/v1/media/series?series=${
-        show.shortName
+        show.shortName || show.id
       }`,
       undefined,
       3

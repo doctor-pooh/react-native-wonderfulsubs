@@ -101,20 +101,6 @@ class ShowHeader extends Component<Props> {
         <View style={styles.categoryContainer}>
           {categories}
           <Category
-            preferredFocus={
-              DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY === category
-            }
-            key={DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY}
-            title={"Bookmarks"}
-            onFocus={onFocusDebounce}
-            onPress={() =>
-              updateCategory(DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY)
-            }
-            selected={
-              DATA_CONST.CATEGORIES.BOOKMARKS_CATEGORY === categorySelection
-            }
-          />
-          <Category
             preferredFocus={DATA_CONST.CATEGORIES.SEARCH_CATEGORY === category}
             key={DATA_CONST.CATEGORIES.SEARCH_CATEGORY}
             icon={DATA_CONST.CATEGORIES.SEARCH_CATEGORY}
