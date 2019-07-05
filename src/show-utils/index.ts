@@ -15,7 +15,7 @@ export const findSeasonAndIndex = (data: {
 }): { index: number; season: Season } => {
   const { seasonId, show } = data;
   let seasonIndex;
-  const season = show.seasons.find(({ id }, index) => {
+  const season = show.seasons && show.seasons.find(({ id }, index) => {
     seasonIndex = index;
     return id === seasonId;
   });
@@ -46,11 +46,21 @@ export const findEpisodeAndIndex = (data: {
   } else {
     currentSeason = season;
   }
-  const episode = currentSeason.episodes.find(({ id }, index) => {
+  const episode = currentSeason && currentSeason.episodes.find(({ id }, index) => {
     episodeIndex = index;
     return id === episodeId;
   });
   return { index: episodeIndex, episode };
+};
+
+export const findEpisode = (data: {
+  episodeId;
+  seasonId?;
+  show?: Show;
+  season?: Season;
+}): Episode => {
+  const { episode } = findEpisodeAndIndex(data);
+  return episode;
 };
 
 export const findNextEpisode = (data: {

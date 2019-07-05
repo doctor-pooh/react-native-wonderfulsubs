@@ -85,9 +85,9 @@ export function fetchedEpisodeData(): Action {
 
 export function fetchNextEpisode(current: {
   showId: string;
-  seasonId: number;
-  episodeId: number;
-}): Action<{ showId: string; seasonId: number; episodeId: number }> {
+  seasonId: string;
+  episodeId: string;
+}): Action<{ showId: string; seasonId: string; episodeId: string }> {
   const { showId, seasonId, episodeId } = current;
   return {
     type: FETCH_NEXT_EPISODE,

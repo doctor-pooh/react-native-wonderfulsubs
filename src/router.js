@@ -7,7 +7,7 @@ import {
 } from "react-navigation-redux-helpers";
 import { StackActions } from "react-navigation";
 import { BackHandler } from "react-native";
-import { Player } from "./player";
+import { PlayerLayout } from "./player";
 import { ShowsLayout } from "./shows";
 import { EpisodesLayout } from "./episodes";
 
@@ -16,7 +16,7 @@ const initialCategory = global.__provider().categories[0].type;
 export const router = createStackNavigator(
   {
     Player: {
-      screen: Player
+      screen: PlayerLayout
     },
     Shows: {
       screen: ShowsLayout
