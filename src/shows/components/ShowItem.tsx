@@ -69,8 +69,9 @@ export default class ShowItem extends Component<Props> {
             {badgeText ? (
               <Badge
                 badgeStyle={{
-                  backgroundColor: "rgb(32,33,32)",
-                  borderWidth: 0
+                  backgroundColor: "rgba(32,33,32, 0.85)",
+                  borderWidth: 0,
+                  borderRadius: 4
                 }}
                 textStyle={{ paddingBottom: 2, fontSize: 10 }}
                 value={badgeText}
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
   },
   overlayContainer: {
     position: "absolute",
-    bottom: 10,
+    top: 10,
     right: 10,
     zIndex: 109999,
     flex: 1,

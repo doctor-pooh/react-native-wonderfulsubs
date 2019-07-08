@@ -39,7 +39,7 @@ class Player extends Component<Props, State> {
   state = {
     updatedWatchingStatus: false,
     nextEpisodePoppedUp: false
-  }
+  };
   render() {
     let playerRef;
     const [state, dispatch] = this.context;
@@ -47,7 +47,7 @@ class Player extends Component<Props, State> {
       player,
       video: { progress, duration, delta, paused }
     } = state;
-    const { updatedWatchingStatus, nextEpisodePoppedUp} = this.state;
+    const { updatedWatchingStatus, nextEpisodePoppedUp } = this.state;
     const {
       showId,
       seasonId,
@@ -110,28 +110,33 @@ class Player extends Component<Props, State> {
             !updatedWatchingStatus
           ) {
             setEpisodeWatched(true);
-            this.setState({updatedWatchingStatus: true});
+            this.setState({ updatedWatchingStatus: true });
           }
           if (duration - progress.currentTime <= 15 && !nextEpisodePoppedUp) {
-            const { episode: nextEpisode } = findNextEpisode({
+            const { episode: nextEpisode } = seasonId && episodeId && findNextEpisode({
               seasonId,
               episodeId,
               show: showData
-            });
-            popoverRef.current.displayPopup(
-              {
-                episodePopup: {
-                  episode: nextEpisode,
-                  topText: "Next up...",
-                  showTimeLeft: true
-                }
-              },
-              false
-            );
-            this.setState({nextEpisodePoppedUp: true});
-          } else if (duration - progress.currentTime > 15 && nextEpisodePoppedUp) {
+            }) || { episode: undefined };
+            if (nextEpisode) {
+              popoverRef.current.displayPopup(
+                {
+                  episodePopup: {
+                    episode: nextEpisode,
+                    topText: "Next up...",
+                    showTimeLeft: true
+                  }
+                },
+                false
+              );
+            }
+            this.setState({ nextEpisodePoppedUp: true });
+          } else if (
+            duration - progress.currentTime > 15 &&
+            nextEpisodePoppedUp
+          ) {
             popoverRef.current.dismissPopup();
-            this.setState({nextEpisodePoppedUp: false});
+            this.setState({ nextEpisodePoppedUp: false });
           }
         }}
         onEnd={() => {
@@ -152,7 +157,8 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     right: 0,
-    zIndex: 500
+    zIndex: 500,
+    backgroundColor: "black"
   }
 });
 

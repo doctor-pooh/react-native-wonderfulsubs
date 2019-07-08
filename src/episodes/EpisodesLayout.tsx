@@ -14,7 +14,7 @@ interface Props {
   shows: {
     isFetching: boolean;
   };
-  fetchSeasonData(target: {showId: string}): AnyAction;
+  fetchSeasonData(target: { showId: string }): AnyAction;
 }
 
 const EpisodeLayout = (props: Props) => {
@@ -38,7 +38,11 @@ const EpisodeLayout = (props: Props) => {
       <StateProvider>
         {isFetching ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator style={styles.loadingIndicator} size="large" color="#ff9900" />
+            <ActivityIndicator
+              style={styles.loadingIndicator}
+              size="large"
+              color="#ff9900"
+            />
           </View>
         ) : (
           <View style={styles.container}>

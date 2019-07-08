@@ -43,7 +43,7 @@ class PlayerLayout extends Component<Props> {
 
     const uri: string = navigation.getParam(
       "uri",
-      "https://r6---sn-a5mlrn7r.googlevideo.com/videoplayback?expire=1562316703&ei=P7seXaf6EK6BsfIPqvu6gAM&ip=66.27.114.215&id=o-ALqDEgxfNyJs1qbYXYXTkoqHooYpujMOrakEjAPh7eVk&itag=18&source=youtube&requiressl=yes&mm=31%2C29&mn=sn-a5mlrn7r%2Csn-a5meknlz&ms=au%2Crdu&mv=m&mvi=5&pl=16&gcr=us&initcwndbps=1680000&mime=video%2Fmp4&gir=yes&clen=4608547&ratebypass=yes&dur=173.499&lmt=1560171973431603&mt=1562294954&fvip=6&c=WEB&txp=5531432&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cgcr%2Cmime%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&lsparams=mm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Cinitcwndbps&lsig=AHylml4wRQIgZe8t6sVZA7qImyav-tERiabIfsVN0lIbrFtMMPwjTpACIQCaeSz3355ztmqrLmBCMRWOmYn4ji8wH0wNvkt6XKxOIQ%3D%3D&sig=ALgxI2wwRAIgYpi-PU0obnBH0TzNvVCaTjf47OSJ-9VkWHrOTYD56zkCICh8IFU9eOQtW6yrJ1_vdLpLOvbrXnfguaOzSQM5iJ4q"
+      "http://mirrors.standaloneinstaller.com/video-sample/jellyfish-25-mbps-hd-hevc.mp4"
     );
     const showId: string = navigation.getParam("showId");
     const seasonId: string = navigation.getParam("seasonId");
