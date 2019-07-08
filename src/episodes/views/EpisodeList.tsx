@@ -47,13 +47,16 @@ const EpisodeList = (props: Props) => {
   });
 
   let focusedEpisodeId = undefined;
+  let scrollIndex = undefined;
   if (episodeList.length > 0) {
     if (
       lastWatchedEpisodeIndex &&
       lastWatchedEpisodeIndex < episodeList.length - 1
     ) {
+      scrollIndex = lastWatchedEpisodeIndex + 1;
       focusedEpisodeId = episodeList[lastWatchedEpisodeIndex + 1].id;
     } else {
+      scrollIndex = 0;
       focusedEpisodeId = episodeList[0].id;
     }
   }
@@ -64,6 +67,7 @@ const EpisodeList = (props: Props) => {
       <FlatList
         data={[{ ...topBar, key: "topBar" }, ...episodeList]}
         removeClippedSubviews={false}
+        initialScrollIndex={scrollIndex}
         renderItem={({ item, index }) => {
           if (index === 0) {
             return <TopActionBar show={showData} />;
@@ -77,6 +81,8 @@ const EpisodeList = (props: Props) => {
                 imageSource={item.picture}
                 watched={item.watched}
                 preferredFocus={item.id === focusedEpisodeId}
+                dubbed={item.attributes && item.attributes.dubbed}
+                subbed={item.attributes && item.attributes.subbed}
                 onPress={() =>
                   fetchSourceData({
                     showId: showData.id,

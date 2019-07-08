@@ -4,8 +4,7 @@ import { AnimatedCircularProgress } from "react-native-circular-progress";
 import { StateContext } from "../context";
 import { Episode } from "../../types";
 import { DISPLAY_CONST } from "../../constants";
-import { typeAlias, whileStatement } from "@babel/types";
-
+ 
 interface VideoPopupProps {
   untilTimeLeft?: number;
   showTimeLeft: boolean;

@@ -86,6 +86,8 @@ class ShowList extends Component<Props> {
         onPress={() => {
           goToEpisodes(item.id);
         }}
+        dubbed={item.attributes && item.attributes.dubbed}
+        subbed={item.attributes && item.attributes.subbed}
         onFocus={() => onFocusDebounce(item.id)}
       />
     ));
@@ -155,8 +157,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "flex-start",
-    flexWrap: "wrap",
-    backgroundColor: "rgb(36,36,33)"
+    flexWrap: "wrap"
   },
   infiniteScrollingContainer: {
     marginTop: 20,

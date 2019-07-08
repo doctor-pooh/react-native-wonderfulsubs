@@ -98,10 +98,9 @@ class Player extends Component<Props, State> {
         }} // Can be a URL or a local file.
         style={styles.backgroundVideo}
         paused={paused}
-        onLoad={({ duration }) => {
+        onLoad={({ duration, audioTracks, textTracks }) => {
           dispatch(reactActions.setVideoFinished(false));
           dispatch(reactActions.setTimeDuration(duration));
-          this
           setEpisodeWatched(false);
         }}
         onProgress={(progress: any) => {

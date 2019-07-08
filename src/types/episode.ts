@@ -1,6 +1,12 @@
+export interface EpisodeAttributes {
+    dubbed: boolean;
+    subbed: boolean;
+}
+
 export interface EpisodeDescription {
     picture: string,
-    description: string
+    description: string,
+    attributes?: EpisodeAttributes
 }
 
 export interface Episode extends EpisodeDescription{

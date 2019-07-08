@@ -3,6 +3,7 @@ import { View, Image, Text, StyleSheet, Dimensions } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Button } from "../../components";
 import { DISPLAY_CONST } from "../../constants";
+import { Badge } from "react-native-elements";
 
 interface Props {
   onPress: () => void;
@@ -13,6 +14,8 @@ interface Props {
   episodeNumber?: number;
   onFocus: () => void;
   watched: boolean;
+  dubbed?: boolean;
+  subbed?: boolean;
 }
 
 let winSize = Dimensions.get("window");
@@ -39,8 +42,14 @@ export default class EpisodeItem extends Component<Props> {
       description,
       episodeNumber,
       onFocus,
-      watched
+      watched,
+      subbed,
+      dubbed
     } = this.props;
+    const badgeList = [];
+    subbed && badgeList.push("subs");
+    dubbed && badgeList.push("dubs");
+    const badgeText = badgeList.join(" | ");
 
     return (
       <View style={styles.container}>
@@ -52,16 +61,40 @@ export default class EpisodeItem extends Component<Props> {
           underlayStyle={{ elevation: 0, zIndex: 9999 }}
           focusChildStyle={{
             elevation: 4,
-            backgroundColor: watched ? "rgba(192, 135, 48,1)" : "rgba(90,90,90,1)",
-            opacity: 1
+            backgroundColor: watched
+              ? "rgba(192, 135, 48,1)"
+              : "rgba(90,90,90,1)",
+            opacity: !watched ? 1 : 0.75
           }}
           onPress={onPress}
           onFocus={onFocus}
           style={styles.button}
         >
           <View style={styles.buttonContainer}>
-            {watched? <Icon name="check-circle" style={styles.watchedIcon} /> : <View />}
-            <Image style={styles.image} source={imageSource && { uri: imageSource }} />
+            {watched ? (
+              <Icon name="check-circle" style={styles.watchedIcon} />
+            ) : (
+              <View />
+            )}
+            <View style={styles.overlayContainer}>
+              {badgeText ? (
+                <Badge
+                  badgeStyle={{
+                    backgroundColor: "rgb(32,33,32)",
+                    borderWidth: 0
+                  }}
+                  textStyle={{ paddingBottom: 2, fontSize: 10 }}
+                  value={badgeText}
+                />
+              ) : (
+                <View />
+              )}
+            </View>
+            <Image
+              style={styles.image}
+              source={imageSource && { uri: imageSource }}
+              blurRadius={watched ? 1 : 0}
+            />
           </View>
         </Button>
         <View style={styles.descriptionTextContainer}>
@@ -89,7 +122,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "auto",
     marginLeft: 12,
-    marginRight: 12,
+    marginRight: 12
   },
   episodeNumber: {
     opacity: 1,
@@ -149,5 +182,14 @@ const styles = StyleSheet.create({
   button: {
     paddingTop: 8.5,
     paddingBottom: 8.5
+  },
+  overlayContainer: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 109999,
+    flex: 1,
+    justifyContent: "flex-start",
+    flexDirection: "row"
   }
 });

@@ -8,12 +8,15 @@ import {
 } from "react-native";
 import { Button } from "../../components";
 import { DISPLAY_CONST } from "../../constants";
+import { Badge } from "react-native-elements";
 
 interface Props {
   onPress: () => void;
   preferredFocus?: boolean;
   imageSource: string;
   title: string;
+  dubbed?: boolean;
+  subbed?: boolean;
   onFocus: () => void;
 }
 
@@ -28,8 +31,18 @@ export default class ShowItem extends Component<Props> {
   };
 
   public render() {
-    const { onPress, preferredFocus, imageSource, onFocus } = this.props;
-
+    const {
+      onPress,
+      preferredFocus,
+      imageSource,
+      onFocus,
+      dubbed,
+      subbed
+    } = this.props;
+    const badgeList = [];
+    subbed && badgeList.push("subs");
+    dubbed && badgeList.push("dubs");
+    const badgeText = badgeList.join(" | ");
     return (
       <Button
         underlayColor="rgba(60,60,60,0)"
@@ -52,6 +65,20 @@ export default class ShowItem extends Component<Props> {
         style={styles.button}
       >
         <View style={styles.container}>
+          <View style={styles.overlayContainer}>
+            {badgeText ? (
+              <Badge
+                badgeStyle={{
+                  backgroundColor: "rgb(32,33,32)",
+                  borderWidth: 0
+                }}
+                textStyle={{ paddingBottom: 2, fontSize: 10 }}
+                value={badgeText}
+              />
+            ) : (
+              <View />
+            )}
+          </View>
           <Image style={styles.image} source={{ uri: imageSource }} />
         </View>
       </Button>
@@ -83,5 +110,14 @@ const styles = StyleSheet.create({
     paddingBottom: DISPLAY_CONST.SHOW_ITEM.ITEM_HEIGHT / 3,
     marginLeft: 18,
     marginRight: 18
+  },
+  overlayContainer: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    zIndex: 109999,
+    flex: 1,
+    justifyContent: "flex-start",
+    flexDirection: "row"
   }
 });
