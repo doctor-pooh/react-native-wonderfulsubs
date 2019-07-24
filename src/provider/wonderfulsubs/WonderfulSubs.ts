@@ -1,4 +1,4 @@
-import { matches } from "lodash";
+import { matches, flattenDeep } from "lodash";
 import { Provider } from "../providerAbstract";
 import {
   Category,
@@ -68,9 +68,9 @@ interface ShowWithShortName extends Show {
 export default class WonderfulSubs extends Provider {
   public key = "wonderfulsubs";
   public categories = [
+    { name: "Bookmarks", type: "bookmarks" },
     { name: "Popular", type: "popular" },
-    { name: "Latest", type: "latest" },
-    { name: "Bookmarks", type: "bookmarks" }
+    { name: "Latest", type: "latest" }
   ];
   public maxShowsToFetch = 120;
   private showData: {
@@ -125,11 +125,10 @@ export default class WonderfulSubs extends Provider {
       return this.fetchMoreShows(<Category>{ type });
     }
     if (!this.showData[type]) {
-      const response = await fetch_retry(
-        `https://www.wonderfulsubs.com/api/v1/media/${type}?count=24`,
-        undefined,
-        3
-      );
+      const url = new URL(type, "https://www.wonderfulsubs.com/api/v1/media/");
+      url.searchParams.append("count", "24");
+      console.log(url.href);
+      const response = await fetch_retry(url.href, undefined, 3);
       const json = await response.json();
       const showData = this.translateShows(json);
       this.showData[type] = showsToLookupTable(showData);
@@ -154,11 +153,10 @@ export default class WonderfulSubs extends Provider {
   }: Category): Promise<{ [id: string]: Show }> {
     if (Object.keys(this.showData[type]).length < this.maxShowsToFetch) {
       const startIndex = this.showPageIndex[type];
-      const response = await fetch_retry(
-        `https://www.wonderfulsubs.com/api/v1/media/${type}?index=${startIndex}&count=24`,
-        undefined,
-        3
-      );
+      const url = new URL(type, "https://www.wonderfulsubs.com/api/v1/media/");
+      url.searchParams.append("index", `${startIndex}`);
+      url.searchParams.append("count", "24");
+      const response = await fetch_retry(url.href, undefined, 3);
       const json = await response.json();
       const showData = showsToLookupTable(
         this.translateShows(json, startIndex)
@@ -175,12 +173,9 @@ export default class WonderfulSubs extends Provider {
     query: string;
   }): Promise<{ [id: string]: Show }> {
     const { query } = target;
-    const encodedQuery = encodeURIComponent(query);
-    const response = await fetch_retry(
-      `https://www.wonderfulsubs.com/api/v1/media/search?q=${encodedQuery}`,
-      undefined,
-      3
-    );
+    const url = new URL("https://www.wonderfulsubs.com/api/v1/media/search");
+    url.searchParams.append("q", query);
+    const response = await fetch_retry(url.href, undefined, 3);
     const json = await response.json();
     this.currentCategory = "search";
     this.showData[this.currentCategory] = showsToLookupTable(
@@ -205,13 +200,10 @@ export default class WonderfulSubs extends Provider {
     if (show.seasonsFetched) {
       return show;
     }
-    const response = await fetch_retry(
-      `https://www.wonderfulsubs.com/api/v1/media/series?series=${
-        show.shortName || show.id
-      }`,
-      undefined,
-      3
-    );
+    const url = new URL("https://www.wonderfulsubs.com/api/v1/media/series");
+    url.searchParams.append("series", show.shortName || show.id);
+    console.log(url.href);
+    const response = await fetch_retry(url.href, undefined, 3);
     const json = await response.json();
     const episodesWatched = async seasonId =>
       await this.settings.getEpisodesWatched({ showId, seasonId });
@@ -261,13 +253,11 @@ export default class WonderfulSubs extends Provider {
       if (preferredSourceToFetch.sourcesFetched) {
         return { data: show, source: preferredSourceToFetch };
       }
-      const response = await fetch_retry(
-        `https://www.wonderfulsubs.com/api/v1/media/stream?code=${
-          preferredSourceToFetch.fetchUrl
-        }`,
-        undefined,
-        3
-      );
+      let unencoded = preferredSourceToFetch.fetchUrl;
+      const url = new URL("https://www.wonderfulsubs.com/api/v1/media/stream");
+      url.searchParams.append("code", unencoded);
+      console.log(url.href);
+      const response = await fetch_retry(url.href, undefined, 3);
       json = await response.json();
       status = json.status;
       if (status === 404) {
@@ -304,6 +294,7 @@ export default class WonderfulSubs extends Provider {
         });
       }
     });
+    !idealSource && console.log("No ideal source found!");
     return { index: foundIndex, source: idealSource || defaultSource };
   };
 
@@ -340,7 +331,12 @@ export default class WonderfulSubs extends Provider {
             show.poster_wide.length &&
             indexOrGoodEnough(show.poster_wide, 4).source,
           shortName: showShortName(show),
-          seasonsFetched: false
+          seasonsFetched: false,
+          attributes: {
+            dubbed: show.is_dubbed,
+            subbed: show.is_subbed,
+            rating: show.rating
+          }
         }
     );
   };
@@ -355,8 +351,7 @@ export default class WonderfulSubs extends Provider {
     },
     episodesWatched
   ): Promise<Season[]> => {
-    const type = media[0].type;
-    if (type === "episodes") {
+    if (media.length === 1 && media[0].type === "episodes") {
       const episodesList: object[] = media[0].episodes || [];
       if (episodesList.length > 50) {
         const seasonSlices = episodesList.length / 50;
@@ -386,39 +381,76 @@ export default class WonderfulSubs extends Provider {
       };
       return [season1];
     }
-    return [];
+    const seasons = media.map((season, index): Season => {
+      const { episodes, title, type } = season;
+      return {
+        id: index,
+        seasonName: title,
+        type,
+        episodes: this.translateEpisodes(episodes, episodesWatched(index))
+      }
+    })
+    return seasons;
   };
 
   private translateEpisodes = (episodes = [], watchedEpisodes) => {
-    const stubSources = ({ sources = [] }): Source[] => {
-      return <SourceWithFetchUrl[]>sources.map(
-        (source: any, index: number) =>
+    const stubSources = ({
+      sources,
+      retrieve_url
+    }): { subbed: boolean; dubbed: boolean; sources: Source[] } => {
+      let subbed = false,
+        dubbed = false;
+      let sourceList: SourceWithFetchUrl[] = [];
+      if (retrieve_url) {
+        sourceList = [
           <SourceWithFetchUrl>{
-            id: index,
+            id: 0,
             sourcesFetched: false,
-            name: source.source,
-            language: source.language,
-            fetchUrl: Array.isArray(source.retrieve_url)
-              ? source.retrieve_url[0]
-              : source.retrieve_url
+            name: "unk",
+            language: "unk",
+            fetchUrl: Array.isArray(retrieve_url) ? retrieve_url[0] : retrieve_url
           }
-      );
+        ]
+      } else {
+        sourceList = <SourceWithFetchUrl[]>sources.map(
+          (source: any, index: number) => {
+            if (source.language === "subs") {
+              subbed = true;
+            } else if (source.language === "dubs") {
+              dubbed = true;
+            }
+            const retrieveUrls = Array.isArray(source.retrieve_url) ? source.retrieve_url : [source.retrieve_url]
+            return <SourceWithFetchUrl[]>retrieveUrls.map(fetchUrl => ({
+              id: index,
+              sourcesFetched: false,
+              name: source.source,
+              language: source.language,
+              fetchUrl
+            }));
+          }
+        );
+      }
+      return { subbed, dubbed, sources: flattenDeep(sourceList) };
     };
 
-    return <Episode[]>episodes.map(
-      (episode: any, index: number) =>
-        <Episode>{
-          id: index,
-          name: episode.title,
-          episodeNumber: episode.episode_number,
-          description: episode.description,
-          picture:
-            episode.thumbnail &&
-            episode.thumbnail.length &&
-            indexOrGoodEnough(episode.thumbnail, 0).source,
-          sources: stubSources(episode),
-          watched: watchedEpisodes && !!watchedEpisodes[index]
+    return <Episode[]>episodes.map((episode: any, index: number) => {
+      const { sources, subbed, dubbed } = stubSources(episode);
+      return <Episode>{
+        id: index,
+        name: episode.title,
+        episodeNumber: episode.episode_number,
+        description: episode.description,
+        picture:
+          episode.thumbnail &&
+          episode.thumbnail.length &&
+          indexOrGoodEnough(episode.thumbnail, 0).source,
+        sources,
+        watched: watchedEpisodes && !!watchedEpisodes[index],
+        attributes: {
+          dubbed,
+          subbed
         }
-    );
+      };
+    });
   };
 }
