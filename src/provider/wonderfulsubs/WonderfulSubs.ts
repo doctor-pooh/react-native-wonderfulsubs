@@ -239,6 +239,13 @@ export default class WonderfulSubs extends Provider {
     seasonId: number;
     episodeId: number;
   }): Promise<{ data: Show; source: Source }> {
+    const normalizeEncoding = params => {
+      let decode = params;
+      while(/%[0-9a-f]{2}/i.test(decodeURIComponent(decode))) {
+        decode = decodeURIComponent(decode);
+      }
+      return decode;
+    }
     const { showId, seasonId, episodeId } = target;
     const show = this.showData[this.currentCategory][showId];
     const season = show.seasons[seasonId];
@@ -253,9 +260,9 @@ export default class WonderfulSubs extends Provider {
       if (preferredSourceToFetch.sourcesFetched) {
         return { data: show, source: preferredSourceToFetch };
       }
-      let unencoded = preferredSourceToFetch.fetchUrl;
+      let encoded = normalizeEncoding(preferredSourceToFetch.fetchUrl);
       const url = new URL("https://www.wonderfulsubs.com/api/v1/media/stream");
-      url.searchParams.append("code", unencoded);
+      url.searchParams.append("code", encoded);
       console.log(url.href);
       const response = await fetch_retry(url.href, undefined, 3);
       json = await response.json();
