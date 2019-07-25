@@ -9,35 +9,36 @@ import { updateShowData, fetchedShowData, searchedShowData } from "./actions";
 import { AnyAction } from "redux";
 import { NavigationActions } from "react-navigation";
 import { DATA_CONST } from "../constants";
+import { Show, Source } from "../types";
 
 function* fetchShowData({ payload: { category } }: AnyAction) {
-  const data = yield global
+  const data = <Show[]>(yield global
     .__provider()
-    .fetchShows({ name: "", type: category });
+    .fetchShows({ name: "", type: category }));
   yield put(fetchedShowData({ data }));
 }
 
 function* fetchSeasonData({ payload: { id } }: AnyAction) {
-  const data = yield global.__provider().fetchSeasons({ showId: id });
+  const data = <Show>(yield global.__provider().fetchSeasons({ showId: id }));
   yield put(updateShowData({ showId: id, data }));
 }
 
 function* fetchSearchData({ payload: { query } }: AnyAction) {
-  const searchData = yield global.__provider().searchShows({ query });
+  const searchData = <Show[]>(yield global.__provider().searchShows({ query }));
   yield put(searchedShowData({ searchData }));
 }
 
 function* fetchSourceData({
   payload: { showId, seasonId, episodeId }
 }: AnyAction) {
-  const { data, source } = yield global
+  const { data, source } = <{ data: Show, source: Source }>(yield global
     .__provider()
-    .fetchSources({ showId, seasonId, episodeId });
+    .fetchSources({ showId, seasonId, episodeId }));
   yield put(
     NavigationActions.navigate({
       routeName: "Player",
       key: "Player",
-      params: { uri: source.url, showId, seasonId, episodeId }
+      params: { uri: source.url, showId, seasonId, episodeId, source }
     })
   );
   yield put(updateShowData({ showId, data }));

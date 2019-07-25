@@ -1,15 +1,14 @@
 import React, { Component } from "react";
-import { Animated, View, Text, StyleSheet, Image } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
+import { Animated, View, Text, StyleSheet, Dimensions } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome5";
 import VideoProgress from "./VideoProgress";
 import { StateContext } from "../context";
-import { Episode } from "../../types";
-import { DISPLAY_CONST } from "../../constants"
-import { typeAlias } from "@babel/types";
+import LinearGradient from "react-native-linear-gradient";
 
 interface VideoPopupProps {
   icon: string;
   text: string;
+  info: any;
   opacity: number | Animated.Value;
 }
 const test = {
@@ -24,7 +23,7 @@ class VideoProgressPopup extends Component<VideoPopupProps> {
   static contextType = StateContext;
   render() {
     const [state] = this.context;
-    const { icon, text, opacity = 0 } = this.props;
+    const { icon, text, opacity = 0, info } = this.props;
     const {
       video: { progress, duration, delta }
     } = state;
@@ -32,26 +31,32 @@ class VideoProgressPopup extends Component<VideoPopupProps> {
     return (
       <View style={styles.statusContainer}>
         <Animated.View style={{ ...styles.bottomContainer, opacity }}>
-          {currentTime >= 0 && duration ? (
-            <VideoProgress duration={duration} currentTime={currentTime} />
-          ) : (
-            <View />
-          )}
-          <View style={styles.statusTextContainer}>
-            {icon ? <Icon name={icon} style={styles.statusIcon} /> : <View />}
-            {text ? <Text style={styles.statusText}>{text}</Text> : <View />}
-          </View>
+          <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.5)", "rgba(0,0,0,0.9)"]}
+            locations={[0, 0.35, 1]}
+            style={styles.gradientContainer}>
+            {currentTime >= 0 && duration ? (
+              <VideoProgress duration={duration} currentTime={currentTime} />
+            ) : (
+                <View />
+              )}
+            <View style={styles.statusTextContainer}>
+              {icon ? <Icon name={icon} style={styles.statusIcon} /> : <View />}
+              {text ? <Text style={styles.statusText}>{text}</Text> : <View />}
+            </View>
+            {info ? <View style={styles.infoContainer}><Icon name="stream" style={styles.infoIcon} /><Text style={styles.infoText}>{info}</Text></View> : <View />}
+          </LinearGradient>
         </Animated.View>
       </View>
     );
   }
 }
 
+let winSize = Dimensions.get("window");
 const styles = StyleSheet.create({
   statusContainer: {
     zIndex: 700,
-    width: "100%",
-    height: "100%"
+    width: winSize.width,
+    height: winSize.height
   },
   bottomContainer: {
     flex: 1,
@@ -59,23 +64,37 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 75,
+    height: 60,
     opacity: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)"
+    backgroundColor: "rgba(0, 0, 0, 0)"
   },
-  topContentContainer: {
-    marginTop: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    flex: 1,
-    justifyContent: "space-around",
-    alignItems: "center",
-    flexDirection: "row"
+  gradientContainer: {
+    height: "100%"
   },
   statusTextContainer: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    top: -10
+  },
+  infoContainer: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    opacity: 0.4,
+    flex: 1,
+    flexDirection: "row"
+  },
+  infoText: {
+    color: "#FFF",
+    fontSize: 10
+  },
+  infoIcon: {
+    color: "#FFF",
+    fontSize: 10,
+    marginRight: 5,
+    top: 2
   },
   statusText: {
     color: "#FFF",
@@ -85,56 +104,6 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 25,
     marginRight: 10
-  },
-  episodeTextContainer: {
-    flex: 1,
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-    paddingLeft: 20,
-    paddingRight: 20,
-    paddingTop: 5,
-    paddingBottom: 5
-  },
-  episodeDescription: {
-    opacity: 1,
-    color: "white",
-    fontSize: 11
-  },
-  episodeTitle: {
-    opacity: 1,
-    color: "white",
-    fontSize: 16,
-    marginBottom: 10
-  },
-  topContainer: {
-    width: "50%",
-    flex: 1,
-    position: "absolute",
-    marginTop: 10,
-    top: 0,
-    right: 0,
-    opacity: 1,
-  },
-  topTitleContainer: {
-    marginLeft: 5
-  },
-  topContainerTitleText: {
-    color: "white",
-    fontSize: 16,
-    opacity: 1
-  },
-  episodeImageContainer: {
-    paddingTop: 5,
-    paddingBottom: 5,
-    paddingLeft: 5,
-    paddingRight: 5,
-    justifyContent: "center",
-    alignItems: "center",
-    opacity: 1
-  },
-  episodeImage: {
-    width: DISPLAY_CONST.EPISODE_ITEM.ITEM_WIDTH * 0.55,
-    height: DISPLAY_CONST.EPISODE_ITEM.ITEM_HEIGHT * 0.55
   }
 });
 

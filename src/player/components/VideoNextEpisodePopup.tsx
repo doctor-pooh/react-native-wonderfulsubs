@@ -4,7 +4,8 @@ import { AnimatedCircularProgress } from "react-native-circular-progress";
 import { StateContext } from "../context";
 import { Episode } from "../../types";
 import { DISPLAY_CONST } from "../../constants";
- 
+import LinearGradient from "react-native-linear-gradient";
+
 interface VideoPopupProps {
   untilTimeLeft?: number;
   showTimeLeft: boolean;
@@ -31,7 +32,7 @@ class VideoNextEpisodePopup extends Component<VideoPopupProps> {
       episode,
       topText,
       showTimeLeft = false,
-      untilTimeLeft = 15
+      untilTimeLeft = 30
     } = this.props;
     const {
       video: { progress = 0, duration = 0, delta }
@@ -54,7 +55,13 @@ class VideoNextEpisodePopup extends Component<VideoPopupProps> {
         ) : (
           <View />
         )}
-        <View style={styles.topContentContainer}>
+        <LinearGradient
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          colors={["rgba(0,0,0,0.75)", "rgba(0,0,0,0)"]}
+          locations={[0.8, 1]}
+          style={styles.topContentContainer}
+        >
           {showTimeLeft ? (
             <View style={styles.progressContainer}>
               <AnimatedCircularProgress
@@ -91,7 +98,7 @@ class VideoNextEpisodePopup extends Component<VideoPopupProps> {
               {description}
             </Text>
           </View>
-        </View>
+        </LinearGradient>
       </Animated.View>
     );
   }
@@ -104,23 +111,13 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginRight: 5
   },
-  bottomContainer: {
-    flex: 1,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-    opacity: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)"
-  },
   topContentContainer: {
     marginTop: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     flex: 1,
     justifyContent: "space-around",
     alignItems: "center",
-    flexDirection: "row"
+    flexDirection: "row",
+    paddingRight: 25
   },
   statusTextContainer: {
     flex: 1,

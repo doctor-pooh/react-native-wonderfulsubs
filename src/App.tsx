@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import { useScreens } from "react-native-screens";
 import { WonderfulSubs } from "./provider/wonderfulsubs";
 import { Provider as ProviderAbstract } from "./provider/providerAbstract";
-import { Alert } from "react-native";
+import { Alert, StatusBar } from "react-native";
 import { buildStore } from "./store";
 
 useScreens();
@@ -37,6 +37,9 @@ export default class App extends Component {
     ${info}
     `
     );
+  }
+  componentDidMount() {
+    StatusBar.setHidden(true);
   }
   render() {
     return (

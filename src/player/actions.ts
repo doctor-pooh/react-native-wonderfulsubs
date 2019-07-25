@@ -18,10 +18,10 @@ export function setTimeProgress(progress) {
     };
 }
 
-export function setTimeDuration(duration) {
+export function setVideoInfo(data) {
     return {
-        type: "SET_TIME_DURATION",
-        payload: duration
+        type: "SET_VIDEO_INFO",
+        payload: data
     };
 }
 

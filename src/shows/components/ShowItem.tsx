@@ -4,7 +4,8 @@ import {
   Image,
   Text,
   TouchableHighlight,
-  StyleSheet
+  StyleSheet,
+  Animated
 } from "react-native";
 import { Button } from "../../components";
 import { DISPLAY_CONST } from "../../constants";
@@ -17,6 +18,7 @@ interface Props {
   title: string;
   dubbed?: boolean;
   subbed?: boolean;
+  selected?: boolean;
   onFocus: () => void;
 }
 
@@ -37,7 +39,8 @@ export default class ShowItem extends Component<Props> {
       imageSource,
       onFocus,
       dubbed,
-      subbed
+      subbed,
+      selected
     } = this.props;
     const badgeList = [];
     subbed && badgeList.push("subs");

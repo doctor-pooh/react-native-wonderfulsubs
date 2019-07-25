@@ -13,6 +13,7 @@ interface State {
     visible: boolean;
     icon?: string;
     text?: string;
+    videoInfo?: any;
   };
   episodePopup: {
     visible: boolean;
@@ -29,7 +30,8 @@ class PlayerPopover extends Component<Props, State> {
     lowerPopup: {
       visible: false,
       icon: undefined,
-      text: undefined
+      text: undefined,
+      videoInfo: undefined
     },
     episodePopup: {
       visible: false,
@@ -41,7 +43,7 @@ class PlayerPopover extends Component<Props, State> {
 
   displayPopup(
     value: {
-      lowerPopup?: { icon?: string; text?: string };
+      lowerPopup?: { icon?: string; text?: string, videoInfo?: any };
       episodePopup?: {
         episode: Episode;
         topText?: string;
@@ -108,6 +110,7 @@ class PlayerPopover extends Component<Props, State> {
           <VideoProgressPopup
             icon={this.state.lowerPopup.icon}
             text={this.state.lowerPopup.text}
+            info={this.state.lowerPopup.videoInfo}
             opacity={this.state.anim}
           />
         ) : (

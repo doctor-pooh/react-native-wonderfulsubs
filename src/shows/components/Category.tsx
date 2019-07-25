@@ -13,7 +13,7 @@ interface Props {
 }
 
 const Category = (props: Props) => {
-  return <TextButton {...props} style={{ paddingRight: 100 }} />;
+  return <TextButton {...props} style={{ paddingRight: 100 }} fontSize={20} />;
 };
 
 export default Category;

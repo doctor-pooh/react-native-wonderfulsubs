@@ -12,6 +12,7 @@ export const initialState = {
     paused: false,
     progress: undefined,
     duration: undefined,
+    naturalSize: undefined,
     delta: 0,
     finished: false
   },
@@ -46,12 +47,12 @@ export const reducer = (state, action) => {
         }
       };
     }
-    case "SET_TIME_DURATION": {
+    case "SET_VIDEO_INFO": {
       return {
         ...state,
         video: {
           ...state.video,
-          duration: action.payload
+          ...action.payload
         }
       };
     }

@@ -5,8 +5,7 @@ import {
   Image,
   Text,
   StyleSheet,
-  Dimensions,
-  TextInput
+  Dimensions
 } from "react-native";
 import { NavigationActions } from "react-navigation";
 import { debounce } from "lodash";
@@ -15,7 +14,7 @@ import { StateContext } from "../context";
 import { Show } from "../../types";
 import { AnyAction } from "redux";
 import * as actions from "../../redux-store/actions";
-import { Category } from "../components";
+import { Category, SearchButton } from "../components";
 
 let winSize = Dimensions.get("window");
 
@@ -53,14 +52,7 @@ class ShowHeader extends Component<Props> {
 
     const onFocusDebounce = debounce(onFocus, 100);
 
-    const updateSearchBarVisibility = (visible: boolean) => {
-      dispatch({
-        type: "UPDATE_SEARCH_BAR_VISIBILITY",
-        payload: visible
-      });
-    };
-
-    const { selectedShow, searchBarVisible } = state;
+    const { selectedShow } = state;
     const { shows, searchShowData, category, navigation } = this.props;
     const showsData =
       (shows &&
@@ -100,36 +92,23 @@ class ShowHeader extends Component<Props> {
       return (
         <View style={styles.categoryContainer}>
           {categories}
-          <Category
+          <SearchButton
             preferredFocus={DATA_CONST.CATEGORIES.SEARCH_CATEGORY === category}
-            key={DATA_CONST.CATEGORIES.SEARCH_CATEGORY}
-            icon={DATA_CONST.CATEGORIES.SEARCH_CATEGORY}
-            title={"Search"}
             onFocus={onFocusDebounce}
             selected={
               DATA_CONST.CATEGORIES.SEARCH_CATEGORY === categorySelection
             }
-            onPress={() => updateSearchBarVisibility(true)}
+            onSearch={query => {
+              if (query && query.length > 0) {
+                searchShowData(query);
+                updateCategory(DATA_CONST.CATEGORIES.SEARCH_CATEGORY);
+              }
+            }}
           />
-          {searchBarVisible ? (
-            <TextInput
-              placeholder="Search"
-              onSubmitEditing={({ nativeEvent: { text: query } }) => {
-                if (query && query.length > 0) {
-                  searchShowData(query);
-                  updateCategory(DATA_CONST.CATEGORIES.SEARCH_CATEGORY);
-                }
-              }}
-              onBlur={() => updateSearchBarVisibility(false)}
-              autoFocus={true}
-              style={styles.searchBar}
-            />
-          ) : (
-            <View />
-          )}
         </View>
       );
     };
+
     const descriptionView = () => (
       <View style={styles.descriptionContainer}>
         <Image style={styles.image} source={{ uri: show.wallArt }} />
@@ -143,17 +122,11 @@ class ShowHeader extends Component<Props> {
         </View>
       </View>
     );
-    if (!show || selectedShow === undefined) {
-      return (
-        <View style={{ ...styles.container, ...this.props.style }}>
-          {categoryView()}
-        </View>
-      );
-    }
+
     return (
       <View style={{ ...styles.container, ...this.props.style }}>
         {categoryView()}
-        {descriptionView()}
+        {show && selectedShow ? descriptionView(): <View />}
       </View>
     );
   }
@@ -178,7 +151,9 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start"
+    justifyContent: "flex-start",
+    paddingTop: 10,
+    paddingBottom: 5,
   },
   descriptionTextContainer: {
     justifyContent: "flex-start",
@@ -202,9 +177,6 @@ const styles = StyleSheet.create({
   image: {
     width: DISPLAY_CONST.SHOW_ITEM.ITEM_HEIGHT * 0.9,
     height: DISPLAY_CONST.SHOW_ITEM.ITEM_WIDTH * 0.9
-  },
-  searchBar: {
-    display: "none"
   }
 });
 

@@ -14,6 +14,7 @@ import {
   FETCH_NEXT_EPISODE
 } from "./actionTypes";
 import { Action } from "../redux-utils";
+import { Show } from "../types";
 
 export function initializeShows(category: string): Action<string> {
   return {
@@ -23,8 +24,8 @@ export function initializeShows(category: string): Action<string> {
 }
 
 export function fetchedShowData(target: {
-  data: object[];
-}): Action<{ data: object[] }> {
+  data: Show[];
+}): Action<{ data: Show[] }> {
   const { data } = target;
   return {
     type: FETCHED_SHOW_DATA,
@@ -51,8 +52,8 @@ export function searchShowData(query: string): Action<{ query: string }> {
 }
 
 export function searchedShowData(target: {
-  searchData: object[];
-}): Action<{ searchData: object[] }> {
+  searchData: Show[];
+}): Action<{ searchData: Show[] }> {
   const { searchData } = target;
   return {
     type: FETCHED_SEARCH_SHOW_DATA,

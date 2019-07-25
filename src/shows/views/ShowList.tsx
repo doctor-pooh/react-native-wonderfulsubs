@@ -39,6 +39,7 @@ class ShowList extends Component<Props> {
   render() {
     const [state, dispatch] = this.context;
     const { navigation, infiniteScrollShowData, category, shows } = this.props;
+    const { selectedShow } = state;
     const { isFetching } = shows;
 
     const resetCategory = () => {
@@ -89,6 +90,7 @@ class ShowList extends Component<Props> {
         dubbed={item.attributes && item.attributes.dubbed}
         subbed={item.attributes && item.attributes.subbed}
         onFocus={() => onFocusDebounce(item.id)}
+        selected={item.id === selectedShow}
       />
     ));
 

@@ -10,13 +10,15 @@ interface Props {
   title?: string;
   selected?: boolean;
   icon?: string;
+  style: any;
 }
 
 export default class SeasonItem extends Component<Props> {
+  props: { [x: string]: any; };
   render() {
-    const { props } = this;
+    const { style = {}, ...props } = this.props;
     return (
-      <TextButton {...props} style={{marginBottom: 14.5}}/>
+      <TextButton {...props} style={{...style, marginBottom: 14.5, marginLeft: 10, marginRight: 10, ...style}}/>
     );
   }
 }

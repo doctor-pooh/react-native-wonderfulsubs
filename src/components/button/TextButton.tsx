@@ -10,6 +10,7 @@ interface Props {
   selected?: boolean;
   icon?: string;
   style?: object;
+  fontSize?:number;
   underlineWhenSelected?: boolean;
 }
 
@@ -22,7 +23,8 @@ const TextButton = (props: Props) => {
     title,
     icon,
     underlineWhenSelected = true,
-    style = {}
+    style = {},
+    fontSize=16
   } = props;
   const styles = StyleSheet.create({
     button: {
@@ -39,7 +41,7 @@ const TextButton = (props: Props) => {
       borderColor: "rgba(255,255,255,0)"
     },
     text: {
-      fontSize: 16,
+      fontSize,
       color: "white",
       paddingLeft: 0,
       paddingRight: 6,

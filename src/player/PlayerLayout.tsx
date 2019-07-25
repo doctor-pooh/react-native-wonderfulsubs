@@ -7,7 +7,7 @@ import { Animated, View, StyleSheet } from "react-native";
 import KeepAwake from "react-native-keep-awake";
 import { VideoProgressPopup, VideoNextEpisodePopup } from "./components";
 import { findEpisode } from "../show-utils";
-import { Show, Episode } from "src/types";
+import { Show, Episode, Source } from "../types";
 import { RemoteInput } from "./hoc";
 import { StateProvider } from "./context";
 
@@ -48,7 +48,7 @@ class PlayerLayout extends Component<Props> {
     const showId: string = navigation.getParam("showId");
     const seasonId: string = navigation.getParam("seasonId");
     const episodeId: string = navigation.getParam("episodeId");
-
+    const source: Source = navigation.getParam("source");
     const episode = findEpisode({ episodeId, seasonId, show: showData });
 
     return (
@@ -58,6 +58,8 @@ class PlayerLayout extends Component<Props> {
             showId={showId}
             seasonId={seasonId}
             episodeId={episodeId}
+            episode={episode}
+            source={source}
             popoverRef={this.popoverRef}
             uri={uri}
             innerRef={this.playerRef}
@@ -68,6 +70,7 @@ class PlayerLayout extends Component<Props> {
             popoverRef={this.popoverRef}
             playerRef={this.playerRef}
             episode={episode}
+            source={source}
           />
         </StateProvider>
       </View>

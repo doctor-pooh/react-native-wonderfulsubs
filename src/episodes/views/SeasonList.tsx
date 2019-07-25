@@ -13,7 +13,7 @@ import {
   StyleSheet,
   View,
   FlatList,
-  Text
+  Dimensions
 } from "react-native";
 import * as actions from "../../redux-store/actions";
 import { SeasonItem } from "../components";
@@ -27,7 +27,7 @@ interface Props {
   };
   style: object;
 }
-
+const winSize = Dimensions.get("window");
 const SeasonList = (props: Props) => {
   const [state, dispatch] = useStateValue();
   const { shows, style = {} } = props;
@@ -43,9 +43,11 @@ const SeasonList = (props: Props) => {
 
   const seasonData = (showData && showData.seasons) || [];
 
-  const seasonDataWithKey = seasonData.map(season => ({
+  const seasonDataWithKey = seasonData.map((season, index) => ({
     ...season,
-    key: `${season.id}`
+    key: `${season.id}`,
+    first: index === 0,
+    last: seasonData.length - 1 === index
   }));
 
   const selectedSeasonData = seasonData[selectedSeason];
@@ -56,19 +58,19 @@ const SeasonList = (props: Props) => {
       title={item.seasonName}
       selected={item.id === selectedSeason}
       onPress={() => setSelectedSeason(item.id)}
+      style={{marginLeft: item.first ? 10 : 40, marginRight: item.last ? 10: 40 }}
     />
   );
 
   return (
     <View style={styles.container}>
-      {selectedSeasonData ? <Text style={styles.text}>{selectedSeasonData.type}</Text> : <View />}
       <FlatList
         data={seasonDataWithKey}
         renderItem={seasonItemRenderer}
-        numColumns={1}
         style={{ ...styles.scrollOuterContainer, ...style }}
         contentContainerStyle={styles.scrollInnerContainer}
         showsVerticalScrollIndicator={false}
+        horizontal={true}
       />
     </View>
   );
@@ -80,16 +82,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingLeft: 10,
     paddingRight: 10,
-    paddingBottom: 10,
-    marginTop: 20
+    paddingBottom: 5,
+    paddingTop: 10
   },
-  scrollOuterContainer: {},
+  scrollOuterContainer: {
+  },
   container: {
-    paddingTop: 18,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgb(30,30,25)",
-    elevation: 2
+    elevation: 2,
+    width: winSize.width
   },
   text: {
     color: "white",

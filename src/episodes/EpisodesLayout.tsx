@@ -57,13 +57,15 @@ const EpisodeLayout = (props: Props) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row"
+    flexDirection: "column"
   },
   seasonContainer: {
-    width: 130
+    width: "100%",
+    height: 75
   },
   episodeContainer: {
-    width: winSize.width - 130
+    width: "100%",
+    height: winSize.height - 75
   },
   loadingContainer: {
     width: winSize.width,
