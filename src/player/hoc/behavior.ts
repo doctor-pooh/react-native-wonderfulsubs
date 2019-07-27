@@ -2,12 +2,17 @@ import KeepAwake from "react-native-keep-awake";
 import { prettyTime } from "../utils";
 import * as reactActions from "../actions";
 
-export const onRight = function() {
+export const onRight = function({doubleTap}) {
     const [state, dispatch] = this.context;
     let { playerRef, popoverRef } = this.props;
-    let { video: { progress, duration, delta } } = state;
+    let { video: { paused, progress, duration, delta } } = state;
 
-    const forwardAmt = delta || 10;
+    let forwardAmt = delta || 10;
+    if (doubleTap) {
+        const timeSlices = new Array(4).fill(0).map((_,i) => (i+1) * (duration/4));
+        const nearest = timeSlices.find(slice => slice > progress);
+        forwardAmt = nearest - progress;
+    }
     if (progress + forwardAmt < duration) {
         playerRef.current.seek(forwardAmt + progress);
     } else {
@@ -18,7 +23,7 @@ export const onRight = function() {
             icon: "forward",
             text: prettyTime(forwardAmt)
         }
-    });
+    }, true, 5000);
     dispatch(reactActions.setTimeDelta(0));
 };
 
@@ -44,12 +49,17 @@ export const onRightHold = function() {
     dispatch(reactActions.setTimeDelta(forwardAmt));
 };
 
-export const onLeft = function() {
+export const onLeft = function({doubleTap}) {
     const [state, dispatch] = this.context
     let { playerRef, popoverRef } = this.props;
-    let { video: { progress, delta } } = state;
+    let { video: { progress, delta, duration } } = state;
 
-    const reverseAmt = delta || -10;
+    let reverseAmt = delta || -10;
+    if (doubleTap) {
+        const timeSlices = new Array(4).fill(0).map((_,i) => (i+1) * (duration/4));
+        const nearest = timeSlices.reverse().find(slice => slice < (progress - 4)) || 0;
+        reverseAmt = nearest - progress;
+    }
     if (progress + reverseAmt >= 0) {
         playerRef.current.seek(reverseAmt + progress);
     } else {
@@ -60,7 +70,7 @@ export const onLeft = function() {
             icon: "backward",
             text: prettyTime(Math.abs(reverseAmt))
         }
-    });
+    }, true, 5000);
     dispatch(reactActions.setTimeDelta(0));
 };
 

@@ -41,6 +41,8 @@ class PlayerPopover extends Component<Props, State> {
     }
   };
 
+  timer;
+
   displayPopup(
     value: {
       lowerPopup?: { icon?: string; text?: string, videoInfo?: any };
@@ -53,6 +55,7 @@ class PlayerPopover extends Component<Props, State> {
     autoDismiss: boolean = true,
     dissmissAfter: number = 2000
   ) {
+    clearTimeout(this.timer);
     const { lowerPopup, episodePopup } = value;
     const lowerPopupState = lowerPopup
       ? { ...lowerPopup, visible: true }
@@ -78,7 +81,7 @@ class PlayerPopover extends Component<Props, State> {
       }
     });
     if (autoDismiss) {
-      setTimeout(
+      this.timer = setTimeout(
         () =>
           Animated.timing(this.state.anim, {
             toValue: 0,
