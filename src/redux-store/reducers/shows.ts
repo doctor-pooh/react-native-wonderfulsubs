@@ -1,13 +1,14 @@
-import { createReducer } from "../redux-utils";
-
+import { createReducer } from "../../redux-utils";
+import {set} from 'lodash';
 import {
   FETCHED_SHOW_DATA,
   FETCH_SHOW_DATA,
   UPDATE_SHOW_DATA,
   FETCH_SEARCH_SHOW_DATA,
   FETCHED_SEARCH_SHOW_DATA,
-  FETCH_SEASON_DATA
-} from "./actionTypes";
+  FETCH_SEASON_DATA,
+  FETCH_SOURCE_DATA
+} from "../actionTypes";
 import { StackActions, NavigationActions } from "react-navigation";
 
 const fetchedShowData = (state, action) => ({
@@ -64,17 +65,29 @@ const navigatingToScreen = (state, payload) => {
   }
 }
 
+const isFetching = state => ({
+  ...state,
+  isFetching: true
+})
+
+const fetched = state => ({
+  ...state,
+  isFetching: false
+})
+
 export default createReducer(
   {
     data: {},
     showData: {},
     searchData: {},
+    settings: {},
     isFetching: false
   },
   {
     [FETCH_SHOW_DATA]: isFetchingShowsData,
     [FETCH_SEARCH_SHOW_DATA]: isFetchingSearchData,
     [FETCH_SEASON_DATA]: isFetchingSeasonData,
+    [FETCH_SOURCE_DATA]: isFetching,
     [FETCHED_SEARCH_SHOW_DATA]: fetchedSearchShowData,
     [FETCHED_SHOW_DATA]: fetchedShowData,
     [UPDATE_SHOW_DATA]: updateShowData,

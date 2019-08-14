@@ -2,6 +2,9 @@ import { Show } from "../types";
 
 export default abstract class Settings {
   constructor() {}
+  abstract getDefaultSettings(): any;
+  abstract getSettings(): Promise<any>;
+  abstract updateSettings(settings: any): Promise<any>;
   abstract addBookmark(show: Show): Promise<{ [id: string]: Show }>;
   abstract removeBookmark(id: string): Promise<{ [id: string]: Show }>;
   abstract getBookmarks(): Promise<{ [id: string]: Show }>;

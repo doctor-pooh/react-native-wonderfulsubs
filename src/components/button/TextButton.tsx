@@ -50,7 +50,7 @@ const TextButton = (props: Props) => {
     },
     icon: {
       color: "white",
-      fontSize: 16,
+      fontSize,
       paddingLeft: 0,
       paddingRight: 6,
       marginTop: -2,

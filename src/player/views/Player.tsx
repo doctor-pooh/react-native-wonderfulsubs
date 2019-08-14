@@ -14,6 +14,9 @@ interface Props {
   shows: {
     showData: Show;
   };
+  settings: {
+    quality: number
+  },
   navigation: any;
   showId: string;
   seasonId: string;
@@ -27,6 +30,12 @@ interface Props {
     showId: string;
     seasonId: string;
     episodeId: string;
+  }): AnyAction;
+  fetchSourceData(target: {
+    showId: string;
+    seasonId: number;
+    episodeId: number;
+    stalledSourceId?: number;
   }): AnyAction;
 }
 
@@ -48,7 +57,10 @@ class Player extends Component<Props, State> {
     } = state;
     const {
       uri,
-      innerRef
+      innerRef,
+      settings: {
+        quality
+      }
     } = this.props;
 
     return (
@@ -56,13 +68,11 @@ class Player extends Component<Props, State> {
         source={{
           uri
         }}
-        bufferConfig={{
-          bufferForPlaybackMs: 500
-        }}
         style={styles.backgroundVideo}
         paused={paused}
         ref={innerRef}
-        {...mapValues(behavior, fn => fn.bind(this))}
+        maxBitRate={quality}
+        {...mapValues(behavior, fn => typeof fn === 'function' ? fn.bind(this) : fn)}
       />
     );
   }
@@ -89,7 +99,8 @@ const mapDispatchToProps = {
 };
 
 const mapStateToProps = state => ({
-  shows: state.shows
+  shows: state.shows,
+  settings: state.settings
 });
 
 export default connect(

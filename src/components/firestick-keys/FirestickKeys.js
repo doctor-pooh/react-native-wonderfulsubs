@@ -59,6 +59,7 @@ export default class FirestickKeys extends Component {
   }
 
   _enableEventHandler = () => {
+    const { doubleTapTimeout } = this.props;
     const mappedProps = this.buildProps();
     let throttledKeyDown;
     let doubleTapKey;
@@ -66,13 +67,12 @@ export default class FirestickKeys extends Component {
       "onKeyUp",
       ({ keyCode = 0 }) => {
         if (mappedProps && mappedProps[keyCode]) {
-          mappedProps[keyCode].action({doubleTap: doubleTapKey === keyCode});
+          mappedProps[keyCode].action({ doubleTap: doubleTapKey === keyCode });
           doubleTapKey = keyCode
           if (doubleTapKey === keyCode) {
             this.doubleTapTimer = clearTimeout(this.doubleTapTimer);
-          } else {
-            this.doubleTapTimer = setTimeout(() => doubleTapKey = undefined, 100);
           }
+          this.doubleTapTimer = setTimeout(() => doubleTapKey = undefined, doubleTapTimeout);
         }
         if (throttledKeyDown && throttledKeyDown.keyCode === keyCode) {
           this.timer = clearTimeout(this.timer);
@@ -119,5 +119,6 @@ export default class FirestickKeys extends Component {
 }
 
 FirestickKeys.defaultProps = {
-  keyPressTimeOut: 100
+  keyPressTimeOut: 100,
+  doubleTapTimeout: 200
 };

@@ -1,3 +1,5 @@
+import { Source } from "./source";
+
 export interface EpisodeAttributes {
     dubbed: boolean;
     subbed: boolean;
@@ -13,6 +15,6 @@ export interface Episode extends EpisodeDescription{
     id: number,
     name: string,
     episodeNumber: number,
-    sources: [any],
+    sources: Source[],
     watched?: boolean
 }

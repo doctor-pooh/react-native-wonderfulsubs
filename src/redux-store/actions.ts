@@ -11,7 +11,9 @@ import {
   FETCH_SEARCH_SHOW_DATA,
   FETCHED_SEARCH_SHOW_DATA,
   FETCH_SOURCE_DATA,
-  FETCH_NEXT_EPISODE
+  FETCH_NEXT_EPISODE,
+  INITIALIZE_OPTIONS,
+  SET_OPTION
 } from "./actionTypes";
 import { Action } from "../redux-utils";
 import { Show } from "../types";
@@ -116,11 +118,12 @@ export function fetchSourceData(target: {
   showId: string;
   seasonId: number;
   episodeId: number;
-}): Action<{ showId: string; seasonId: number; episodeId: number }> {
-  const { showId, seasonId, episodeId } = target;
+  stalledSourceId?: number;
+}): Action<{ showId: string; seasonId: number; episodeId: number; stalledSourceId?: number }> {
+  const { showId, seasonId, episodeId, stalledSourceId } = target;
   return {
     type: FETCH_SOURCE_DATA,
-    payload: { showId, seasonId, episodeId }
+    payload: { showId, seasonId, episodeId, stalledSourceId }
   };
 }
 
@@ -132,5 +135,22 @@ export function updateShowData(target: {
   return {
     type: UPDATE_SHOW_DATA,
     payload: { id, data }
+  };
+}
+
+export function initializeSettings(settings: any): Action<any> {
+  return {
+    type: INITIALIZE_OPTIONS,
+    payload: settings
+  };
+}
+
+export function updateSettings(path: string, value: any): Action<{ path: string, value: any }> {
+  return {
+    type: SET_OPTION,
+    payload: {
+      path,
+      value
+    }
   };
 }

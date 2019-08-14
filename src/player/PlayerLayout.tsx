@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { AnyAction } from "redux";
 import * as actions from "../redux-store/actions";
-import { Player, PlayerPopover } from "./views";
+import { Player, PlayerPopover, LoadingBackground } from "./views";
 import { Animated, View, StyleSheet } from "react-native";
 import KeepAwake from "react-native-keep-awake";
 import { VideoProgressPopup, VideoNextEpisodePopup } from "./components";
@@ -54,6 +54,7 @@ class PlayerLayout extends Component<Props> {
     return (
       <View style={styles.container}>
         <StateProvider>
+          <LoadingBackground />
           <Player
             showId={showId}
             seasonId={seasonId}

@@ -10,6 +10,7 @@ import { BackHandler } from "react-native";
 import { PlayerLayout } from "./player";
 import { ShowsLayout } from "./shows";
 import { EpisodesLayout } from "./episodes";
+import { Configuration } from "./configuration";
 
 const initialCategory = global.__provider().categories[0].type;
 
@@ -23,6 +24,9 @@ export const router = createStackNavigator(
     },
     Episodes: {
       screen: EpisodesLayout
+    },
+    Settings: {
+      screen: Configuration
     }
   },
   {

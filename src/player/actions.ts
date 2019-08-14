@@ -31,3 +31,22 @@ export function setVideoFinished(finished) {
         payload: finished
     };
 }
+
+export function setVideoLoading() {
+    return {
+        type: "VIDEO_LOADING"
+    };
+}
+
+export function setVideoLoaded() {
+    return {
+        type: "VIDEO_LOADED"
+    };
+}
+
+export function setBufferedCount(bufferedCount) {
+    return {
+        type: "SET_BUFFERED_COUNT",
+        payload: bufferedCount
+    };
+}

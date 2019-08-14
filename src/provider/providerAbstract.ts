@@ -30,5 +30,6 @@ export abstract class Provider {
     showId: string;
     seasonId: number;
     episodeId: number;
+    badSourceId?: number;
   }): Promise<{data: Show, source: Source}>;
 };

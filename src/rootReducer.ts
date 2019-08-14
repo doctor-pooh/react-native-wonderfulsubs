@@ -1,4 +1,4 @@
 import { combineReducers } from "redux";
-import { shows } from "./redux-store";
+import { shows, settings } from "./redux-store/reducers";
 
-export default navigation => combineReducers({ shows, navigation });
+export default navigation => combineReducers({ shows, settings, navigation });

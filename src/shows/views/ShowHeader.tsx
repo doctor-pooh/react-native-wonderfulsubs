@@ -7,7 +7,8 @@ import {
   StyleSheet,
   Dimensions
 } from "react-native";
-import { NavigationActions } from "react-navigation";
+import * as Animatable from 'react-native-animatable';
+import { NavigationActions, StackActions } from "react-navigation";
 import { debounce } from "lodash";
 import { DISPLAY_CONST, DATA_CONST } from "../../constants";
 import { StateContext } from "../context";
@@ -15,6 +16,7 @@ import { Show } from "../../types";
 import { AnyAction } from "redux";
 import * as actions from "../../redux-store/actions";
 import { Category, SearchButton } from "../components";
+import LinearGradient from "react-native-linear-gradient";
 
 let winSize = Dimensions.get("window");
 
@@ -36,8 +38,28 @@ class ShowHeader extends Component<Props> {
   public static defaultProps = {
     style: {}
   };
+  visibleLastState = false;
+
+  public componentDidUpdate() {
+    const [state] = this.context;
+    const { descriptionIsVisible } = state;
+    this.visibleLastState = descriptionIsVisible;
+
+  }
+
   public render() {
     const [state, dispatch] = this.context;
+
+    const setDescIsVisible = (visibility: boolean) => {
+      dispatch({
+        type: "SET_DESCRIPTION_VISIBLE",
+        payload: visibility
+      });
+    };
+
+    const onFocus = () => {
+      setDescIsVisible(false);
+    };
 
     const resetSelectedShow = () => {
       dispatch({
@@ -46,13 +68,10 @@ class ShowHeader extends Component<Props> {
       });
     };
 
-    const onFocus = () => {
-      resetSelectedShow();
-    };
 
     const onFocusDebounce = debounce(onFocus, 100);
 
-    const { selectedShow } = state;
+    const { selectedShow, descriptionIsVisible } = state;
     const { shows, searchShowData, category, navigation } = this.props;
     const showsData =
       (shows &&
@@ -75,6 +94,14 @@ class ShowHeader extends Component<Props> {
         );
       }
     };
+
+    const goToSettings = () => {
+      navigation.dispatch(
+        StackActions.push({
+          routeName: "Settings"
+        })
+      );
+    }
 
     const categoryView = () => {
       const categories = global
@@ -105,29 +132,69 @@ class ShowHeader extends Component<Props> {
               }
             }}
           />
+          <Category
+            preferredFocus={"settings" === category}
+            key={"settings"}
+            icon={"sliders"}
+            onFocus={onFocusDebounce}
+            onPress={goToSettings}
+            selected={"settings" === categorySelection}
+            style={{ marginLeft: "auto" }}
+          />
         </View>
       );
     };
 
-    const descriptionView = () => (
-      <View style={styles.descriptionContainer}>
-        <Image style={styles.image} source={{ uri: show.wallArt }} />
-        <View style={styles.descriptionTextContainer}>
-          <Text numberOfLines={1} style={styles.title}>
-            {show.name}
-          </Text>
-          <Text numberOfLines={6} style={styles.description}>
-            {show.description.trim()}
-          </Text>
-        </View>
-      </View>
-    );
+    const DescriptionView = ({ show, visible }) => {
+      if (!show)
+        return <View />;
+
+      const animation = visible ? {
+        from: {
+          opacity: this.visibleLastState ? 1 : 0,
+          height: this.visibleLastState ? 150: 0
+        },
+        to: {
+          opacity: 1,
+          height: 150
+        }
+      } : {
+          from: {
+            opacity: 1,
+            height: 150
+          },
+          to: {
+            opacity: 0,
+            height: 0
+          }
+        };
+
+
+      const ret = (
+        <Animatable.View
+          onAnimationEnd={() => !visible && resetSelectedShow()}
+          animation={animation}
+          easing={visible ? "ease-in-circ" : "ease-out-circ"}
+          duration={150}
+          style={[styles.descriptionContainer, visible && styles.descriptionContainerVisible]}>
+          <Image style={styles.image} source={{ uri: show.wallArt }} />
+          <View style={styles.descriptionTextContainer}>
+            <Text numberOfLines={1} style={styles.title}>
+              {show.name}
+            </Text>
+            <Text numberOfLines={6} style={styles.description}>
+              {show.description.trim()}
+            </Text>
+          </View>
+        </Animatable.View>);
+      return ret;
+    };
 
     return (
-      <View style={{ ...styles.container, ...this.props.style }}>
+      <LinearGradient colors={["rgba(0,0,0,0.5)", "rgba(0,0,0,0)"]} style={{ ...styles.container, ...this.props.style }}>
         {categoryView()}
-        {show && selectedShow ? descriptionView(): <View />}
-      </View>
+        < DescriptionView show={show} visible={descriptionIsVisible} />
+      </LinearGradient >
     );
   }
 }
@@ -139,14 +206,19 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
     paddingBottom: 10,
-    backgroundColor: "rgb(30,30,25)",
-    elevation: 2
+    backgroundColor: "transparent"
   },
   descriptionContainer: {
     marginTop: 5,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    height: 0,
+    opacity: 0
+  },
+  descriptionContainerVisible: {
+    height: 150,
+    opacity: 1
   },
   categoryContainer: {
     flexDirection: "row",

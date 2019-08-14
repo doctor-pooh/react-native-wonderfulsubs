@@ -3,5 +3,6 @@ export interface Source {
     name: string,
     quality: string,
     language: string,
-    url: string
+    url: string,
+    stalled: boolean
 }

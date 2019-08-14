@@ -8,7 +8,7 @@ import LinearGradient from "react-native-linear-gradient";
 interface VideoPopupProps {
   icon: string;
   text: string;
-  info: any;
+  info: string;
   opacity: number | Animated.Value;
 }
 const test = {
