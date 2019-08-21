@@ -1,4 +1,4 @@
-import { matches, flattenDeep } from "lodash";
+import { first, matches, flattenDeep } from "lodash";
 import { Provider } from "../providerAbstract";
 import {
   Category,
@@ -9,7 +9,7 @@ import {
   SeasonType
 } from "../../types";
 import Settings from "../../settings/settingsAbstract";
-import DefaultSettingsController from "../../settings/settings";
+import WonderfulSettings from "./Settings";
 
 const fetch_retry = async (url, options, n) => {
   for (let i = 0; i < n; i++) {
@@ -79,12 +79,21 @@ export default class WonderfulSubs extends Provider {
 
   private showPageIndex: { [category: string]: number } = {};
   private currentCategory = this.categories[0].type;
+  private currentSettings: { language: string; quality: string };
 
-  constructor(settings: Settings = new DefaultSettingsController()) {
+  constructor(settings: Settings = new WonderfulSettings()) {
     super(settings);
     settings.on("setEpisodeWatched", this.onShowWatched.bind(this));
     settings.on("bookmarkAdded", this.onBookmarkAdded.bind(this));
     settings.on("bookmarkRemoved", this.onBookmarkRemoved.bind(this));
+    settings.on("settingsUpdated", this.onSettingsUpdated.bind(this));
+    (async () => {
+      this.currentSettings = await settings.getSettings();
+    })();
+  }
+
+  onSettingsUpdated({ settings }) {
+    this.currentSettings = settings;
   }
 
   onShowWatched({ showId, seasonId, episodeId, finishedWatching }) {
@@ -238,24 +247,35 @@ export default class WonderfulSubs extends Provider {
     showId: string;
     seasonId: number;
     episodeId: number;
+    badSourceId?: number;
   }): Promise<{ data: Show; source: Source }> {
     const normalizeEncoding = params => {
       let decode = params;
-      while(/%[0-9a-f]{2}/i.test(decodeURIComponent(decode))) {
+      while (/%[0-9a-f]{2}/i.test(decodeURIComponent(decode))) {
         decode = decodeURIComponent(decode);
       }
       return decode;
-    }
-    const { showId, seasonId, episodeId } = target;
+    };
+    const { showId, seasonId, episodeId, badSourceId } = target;
     const show = this.showData[this.currentCategory][showId];
     const season = show.seasons[seasonId];
     const episode = season.episodes[episodeId];
+    if (badSourceId && episode.sources[badSourceId]) {
+      episode.sources[badSourceId] = {
+        ...episode.sources[badSourceId],
+        stalled: true
+      };
+    } else {
+      episode.sources = <Source[]>(
+        episode.sources.map((source): Source => ({ ...source, stalled: false }))
+      );
+    }
     let sources = [...episode.sources];
     let json;
     let preferredSourceToFetch: SourceWithFetchUrl;
     let status;
     do {
-      const { source, index } = this.findIdealSource(sources);
+      const { source, index } = this.findIdealSource(sources, !!badSourceId);
       preferredSourceToFetch = <SourceWithFetchUrl>source;
       if (preferredSourceToFetch.sourcesFetched) {
         return { data: show, source: preferredSourceToFetch };
@@ -280,29 +300,31 @@ export default class WonderfulSubs extends Provider {
   }
 
   private findIdealSource = (
-    sources: Source[]
+    sources: Source[],
+    recoveringFromStall?: boolean
   ): { index: number; source: Source } => {
+    console.log(this.currentSettings);
     const defaultSource = sources[0];
-    const priority = [
-      matches({ name: "ka", language: "dubs" }),
-      matches({ name: "fa", language: "dubs" }),
-      matches({ language: "dubs" })
-    ];
-    let idealSource: Source;
-    let foundIndex = 0;
-    priority.forEach(matcher => {
-      if (!idealSource) {
-        idealSource = sources.find((src, index) => {
-          const matched = matcher(src);
-          if (matched) {
-            foundIndex = index;
-          }
-          return matched;
-        });
-      }
-    });
-    !idealSource && console.log("No ideal source found!");
-    return { index: foundIndex, source: idealSource || defaultSource };
+    const { language: preferredLanguage } = this.currentSettings;
+    let priority = [matches({ language: preferredLanguage })];
+    if (recoveringFromStall) {
+      priority = [matches({ stalled: false }), ...priority];
+    }
+
+    const sourcesWithIndexes = sources.map((source, index) => ({
+      source,
+      index
+    }));
+    const sourcePool = priority.reduce(
+      (list, matcher) => list.filter(({ source }) => matcher(source)),
+      sourcesWithIndexes
+    );
+    const idealSource = first(sourcePool);
+    if (!idealSource) {
+      console.log("No ideal source found!");
+      return { index: 0, source: defaultSource };
+    }
+    return { index: idealSource.index, source: idealSource.source };
   };
 
   private translateSources = (
@@ -388,15 +410,17 @@ export default class WonderfulSubs extends Provider {
       };
       return [season1];
     }
-    const seasons = media.map((season, index): Season => {
-      const { episodes, title, type } = season;
-      return {
-        id: index,
-        seasonName: title,
-        type,
-        episodes: this.translateEpisodes(episodes, episodesWatched(index))
+    const seasons = media.map(
+      (season, index): Season => {
+        const { episodes, title, type } = season;
+        return {
+          id: index,
+          seasonName: title,
+          type,
+          episodes: this.translateEpisodes(episodes, episodesWatched(index))
+        };
       }
-    })
+    );
     return seasons;
   };
 
@@ -415,9 +439,12 @@ export default class WonderfulSubs extends Provider {
             sourcesFetched: false,
             name: "unk",
             language: "unk",
-            fetchUrl: Array.isArray(retrieve_url) ? retrieve_url[0] : retrieve_url
+            stalled: false,
+            fetchUrl: Array.isArray(retrieve_url)
+              ? retrieve_url[0]
+              : retrieve_url
           }
-        ]
+        ];
       } else {
         sourceList = <SourceWithFetchUrl[]>sources.map(
           (source: any, index: number) => {
@@ -426,14 +453,21 @@ export default class WonderfulSubs extends Provider {
             } else if (source.language === "dubs") {
               dubbed = true;
             }
-            const retrieveUrls = Array.isArray(source.retrieve_url) ? source.retrieve_url : [source.retrieve_url]
-            return <SourceWithFetchUrl[]>retrieveUrls.map(fetchUrl => ({
-              id: index,
-              sourcesFetched: false,
-              name: source.source,
-              language: source.language,
-              fetchUrl
-            }));
+            const retrieveUrls = Array.isArray(source.retrieve_url)
+              ? source.retrieve_url
+              : [source.retrieve_url];
+            return <SourceWithFetchUrl[]>retrieveUrls.map(
+              (fetchUrl): SourceWithFetchUrl => ({
+                id: index,
+                sourcesFetched: false,
+                name: source.source,
+                language: source.language,
+                stalled: false,
+                quality: undefined,
+                url: undefined,
+                fetchUrl
+              })
+            );
           }
         );
       }
