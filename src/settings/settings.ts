@@ -112,4 +112,41 @@ export default class DefaultSettingsController extends Settings {
     const episodesWatched = get(`${showId}.${seasonId}`)(watched);
     return episodesWatched;
   }
+
+  async setEpisodeCurrentPosition(target: {
+    showId: string;
+    seasonId: string;
+    episodeId: string;
+    currentPosition: number;
+  }): Promise<void> {
+    const { showId, seasonId, episodeId, currentPosition } = target;
+    let positions = JSON.parse(await AsyncStorage.getItem("@currentPosition"));
+    if (!positions) {
+      positions = {};
+    }
+    positions = set(`${showId}.${seasonId}.${episodeId}`, currentPosition)(
+      positions
+    );
+    this.trigger("setEpisodeCurrentPosition", {
+      showId,
+      seasonId,
+      episodeId,
+      currentPosition
+    });
+    await AsyncStorage.setItem("@currentPosition", JSON.stringify(positions));
+  }
+
+  async getEpisodeCurrentPosition(target: {
+    showId: string;
+    seasonId: string;
+    episodeId: string;
+  }): Promise<string[]> {
+    const { showId, seasonId, episodeId } = target;
+    let positions = JSON.parse(await AsyncStorage.getItem("@currentPosition"));
+    if (!positions) {
+      positions = {};
+    }
+    const currentPosition = get(`${showId}.${seasonId}.${episodeId}`)(positions);
+    return currentPosition;
+  }
 }

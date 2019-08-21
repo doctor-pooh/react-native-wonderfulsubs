@@ -7,11 +7,11 @@ import {
   FETCH_SOURCE_DATA,
   SET_OPTION
 } from "./actionTypes";
-import { 
-  updateShowData, 
-  fetchedShowData, 
-  searchedShowData, 
-  initializeSettings 
+import {
+  updateShowData,
+  fetchedShowData,
+  searchedShowData,
+  initializeSettings
 } from "./actions";
 import { AnyAction } from "redux";
 import { NavigationActions } from "react-navigation";
@@ -36,23 +36,33 @@ function* fetchSearchData({ payload: { query } }: AnyAction) {
 }
 
 function* fetchSourceData({
-  payload: { showId, seasonId, episodeId, stalledSourceId }
+  payload: { showId, seasonId, episodeId, stalledSourceId, currentPosition }
 }: AnyAction) {
   const { data, source } = <{ data: Show, source: Source }>(yield global
     .__provider()
     .fetchSources({ showId, seasonId, episodeId, badSourceId: stalledSourceId }));
+  let lastKnownPosition;
+  if (currentPosition) {
+    lastKnownPosition = currentPosition;
+  } else {
+    const storedPosition = yield global
+      .__provider()
+      .getSettings()
+      .getEpisodeCurrentPosition({ showId, seasonId, episodeId });
+    lastKnownPosition = storedPosition || 0;
+  }
   yield put(
     NavigationActions.navigate({
       routeName: "Player",
       key: "Player",
-      params: { uri: source.url, showId, seasonId, episodeId, source }
+      params: { uri: source.url, showId, seasonId, episodeId, source, currentPosition: lastKnownPosition }
     })
   );
   yield put(updateShowData({ showId, data }));
 }
 
 function* updateSettings({ payload: { path, value } }: AnyAction) {
-  const {settings} = yield select();
+  const { settings } = yield select();
   const updatedSettings = set(settings, path, value);
   yield global.__provider().getSettings().updateSettings(updatedSettings);
 }

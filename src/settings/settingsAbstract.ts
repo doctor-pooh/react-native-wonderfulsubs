@@ -19,7 +19,18 @@ export default abstract class Settings {
     showId: string;
     seasonId: string;
   }): Promise<string[]>;
-
+  abstract getEpisodeCurrentPosition(target: {
+    showId: string;
+    seasonId: string;
+    episodeId: string;
+  }): Promise<string[]>;
+  abstract setEpisodeCurrentPosition(target: {
+    showId: string;
+    seasonId: string;
+    episodeId: string;
+    currentPosition: number;
+  }): Promise<void>;
+  
   private callbackTopics: { [topic: string]: (...args: any) => void } = {};
 
   on(topic: string, fn: (...args: any) => void) {

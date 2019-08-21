@@ -50,6 +50,7 @@ class Player extends Component<Props, State> {
     updatedWatchingStatus: false,
     nextEpisodePoppedUp: false
   };
+  stalledTimer: any;
   render() {
     const [state] = this.context;
     const {
@@ -75,6 +76,9 @@ class Player extends Component<Props, State> {
         {...mapValues(behavior, fn => typeof fn === 'function' ? fn.bind(this) : fn)}
       />
     );
+  }
+  componentWillUnmount() {
+    this.stalledTimer = clearTimeout(this.stalledTimer);
   }
 }
 
