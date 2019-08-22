@@ -1,4 +1,4 @@
-import { first, matches, flattenDeep } from "lodash";
+import { first, matches, flattenDeep, get } from "lodash";
 import { Provider } from "../providerAbstract";
 import {
   Category,
@@ -80,6 +80,8 @@ export default class WonderfulSubs extends Provider {
   private showPageIndex: { [category: string]: number } = {};
   private currentCategory = this.categories[0].type;
   private currentSettings: { language: string; quality: string };
+  private watched;
+  private currentPositions;
 
   constructor(settings: Settings = new WonderfulSettings()) {
     super(settings);
@@ -87,9 +89,21 @@ export default class WonderfulSubs extends Provider {
     settings.on("bookmarkAdded", this.onBookmarkAdded.bind(this));
     settings.on("bookmarkRemoved", this.onBookmarkRemoved.bind(this));
     settings.on("settingsUpdated", this.onSettingsUpdated.bind(this));
+    settings.on("setEpisodeWatched", this.onWatchedUpdated.bind(this));
+    settings.on("setEpisodeCurrentPosition", this.onCurrentPositionsUpdated.bind(this));
     (async () => {
       this.currentSettings = await settings.getSettings();
+      this.watched = await settings.getWatched();
+      this.currentPositions = await settings.getCurrentPositions();
     })();
+  }
+
+  onCurrentPositionsUpdated({ positions }) {
+    this.currentPositions = positions;
+  }
+
+  onWatchedUpdated({ watched }) {
+    this.watched = watched;
   }
 
   onSettingsUpdated({ settings }) {
@@ -173,7 +187,6 @@ export default class WonderfulSubs extends Provider {
       this.showData[type] = { ...this.showData[type], ...showData };
       this.showPageIndex[type] = 24 + this.showPageIndex[type];
     }
-    const bookmarkedShows = await this.settings.getBookmarks();
     checkBookmarks(this.showData[type], this.showData["bookmarks"]);
     return this.showData[type];
   }
@@ -190,7 +203,6 @@ export default class WonderfulSubs extends Provider {
     this.showData[this.currentCategory] = showsToLookupTable(
       this.translateShows(json)
     );
-    const bookmarkedShows = await this.settings.getBookmarks();
     checkBookmarks(
       this.showData[this.currentCategory],
       this.showData["bookmarks"]
@@ -207,25 +219,35 @@ export default class WonderfulSubs extends Provider {
     const { showId } = target;
     const show = <ShowWithShortName>this.showData[this.currentCategory][showId];
     if (show.seasonsFetched) {
-      return show;
+      return this.processShowDetails(show);
     }
     const url = new URL("https://www.wonderfulsubs.com/api/v1/media/series");
     url.searchParams.append("series", show.shortName || show.id);
     console.log(url.href);
     const response = await fetch_retry(url.href, undefined, 3);
     const json = await response.json();
-    const episodesWatched = async seasonId =>
-      await this.settings.getEpisodesWatched({ showId, seasonId });
-    const translatedSeasons = await this.translateSeasons(
-      json,
-      episodesWatched
-    );
+    const translatedSeasons = await this.translateSeasons(json);
     this.showData[this.currentCategory][showId] = {
       ...show,
       seasonsFetched: true,
       seasons: translatedSeasons
     };
-    return this.showData[this.currentCategory][showId];
+    return this.processShowDetails(this.showData[this.currentCategory][showId]);
+  }
+
+  private processShowDetails(show: Show) {
+    const episodesWatched = (seasonId, episodeId) => get(this.watched, `${show.id}.${seasonId}.${episodeId}`);
+    const currentPositions = (seasonId, episodeId) => get(this.currentPositions, `${show.id}.${seasonId}.${episodeId}`);
+    show.seasons = show.seasons.map(season => ({
+      ...season,
+      episodes: season.episodes.map(episode => ({
+        ...episode,
+        watched: episodesWatched(season.id, episode.id),
+        progress: currentPositions(season.id, episode.id)
+      }))
+    }));
+
+    return show;
   }
 
   async fetchEpisodes(target: {
@@ -377,9 +399,7 @@ export default class WonderfulSubs extends Provider {
           ws: { media = [] }
         }
       }
-    },
-    episodesWatched
-  ): Promise<Season[]> => {
+    }): Promise<Season[]> => {
     if (media.length === 1 && media[0].type === "episodes") {
       const episodesList: object[] = media[0].episodes || [];
       if (episodesList.length > 50) {
@@ -394,8 +414,7 @@ export default class WonderfulSubs extends Provider {
             type: SeasonType.episodes,
             seasonName: `${start + 1} to ${end}`,
             episodes: this.translateEpisodes(
-              episodesList.slice(start, end),
-              await episodesWatched(slice)
+              episodesList.slice(start, end)
             )
           };
           seasonList.push(season);
@@ -406,7 +425,7 @@ export default class WonderfulSubs extends Provider {
         id: 0,
         seasonName: `1 to ${episodesList.length}`,
         type: SeasonType.episodes,
-        episodes: this.translateEpisodes(episodesList, await episodesWatched(0))
+        episodes: this.translateEpisodes(episodesList)
       };
       return [season1];
     }
@@ -417,14 +436,14 @@ export default class WonderfulSubs extends Provider {
           id: index,
           seasonName: title,
           type,
-          episodes: this.translateEpisodes(episodes, episodesWatched(index))
+          episodes: this.translateEpisodes(episodes)
         };
       }
     );
     return seasons;
   };
 
-  private translateEpisodes = (episodes = [], watchedEpisodes) => {
+  private translateEpisodes = (episodes = []) => {
     const stubSources = ({
       sources,
       retrieve_url
@@ -486,7 +505,6 @@ export default class WonderfulSubs extends Provider {
           episode.thumbnail.length &&
           indexOrGoodEnough(episode.thumbnail, 0).source,
         sources,
-        watched: watchedEpisodes && !!watchedEpisodes[index],
         attributes: {
           dubbed,
           subbed
