@@ -16,15 +16,16 @@ interface Props {
   watched: boolean;
   dubbed?: boolean;
   subbed?: boolean;
+  progress?: number;
 }
 
 let winSize = Dimensions.get("window");
 
 export default class EpisodeItem extends Component<Props> {
   public static defaultProps = {
-    onPress: () => {},
+    onPress: () => { },
     preferredFocus: false,
-    onFocus: () => {},
+    onFocus: () => { },
     selected: false,
     title: "None",
     description: "No description...",
@@ -50,6 +51,7 @@ export default class EpisodeItem extends Component<Props> {
     subbed && badgeList.push("subs");
     dubbed && badgeList.push("dubs");
     const badgeText = badgeList.join(" | ");
+    const progress = this.props.progress < 1 ? this.props.progress : 0;
 
     return (
       <View style={styles.container}>
@@ -74,8 +76,8 @@ export default class EpisodeItem extends Component<Props> {
             {watched ? (
               <Icon name="check-circle" style={styles.watchedIcon} />
             ) : (
-              <View />
-            )}
+                <View />
+              )}
             <View style={styles.overlayContainer}>
               {badgeText ? (
                 <Badge
@@ -88,14 +90,23 @@ export default class EpisodeItem extends Component<Props> {
                   value={badgeText}
                 />
               ) : (
-                <View />
-              )}
+                  <View />
+                )}
             </View>
             <Image
               style={styles.image}
               source={imageSource && { uri: imageSource }}
               blurRadius={watched ? 1 : 0}
             />
+            {progress > 0 ? <View style={[styles.progressBar, {
+              width: '100%',
+              backgroundColor: 'rgba(0,0,0,0.5)'
+            }]} /> : <View />}
+            <View style={[styles.progressBar,
+            {
+              width: `${watched ? 0 : (progress * 100)}%`,
+              backgroundColor: 'white'
+            }]} />
           </View>
         </Button>
         <View style={styles.descriptionTextContainer}>
@@ -183,6 +194,14 @@ const styles = StyleSheet.create({
   button: {
     paddingTop: 8.5,
     paddingBottom: 8.5
+  },
+  progressBar: {
+    height: 4,
+    position: "absolute",
+    bottom: 5,
+    left: 5,
+    backgroundColor: "white",
+    zIndex: 9999
   },
   overlayContainer: {
     position: "absolute",

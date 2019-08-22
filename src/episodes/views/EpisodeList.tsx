@@ -80,6 +80,7 @@ const EpisodeList = (props: Props) => {
                 episodeNumber={item.episodeNumber}
                 imageSource={item.picture}
                 watched={item.watched}
+                progress={item.progress}
                 preferredFocus={item.id === focusedEpisodeId}
                 dubbed={item.attributes && item.attributes.dubbed}
                 subbed={item.attributes && item.attributes.subbed}

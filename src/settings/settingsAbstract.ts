@@ -15,10 +15,12 @@ export default abstract class Settings {
     episodeId: string;
     finishedWatching: boolean;
   }): Promise<void>;
+  abstract getWatched(): Promise<any>;
   abstract getEpisodesWatched(target: {
     showId: string;
     seasonId: string;
   }): Promise<string[]>;
+  abstract getCurrentPositions(): Promise<any>;
   abstract getEpisodeCurrentPosition(target: {
     showId: string;
     seasonId: string;
@@ -30,7 +32,7 @@ export default abstract class Settings {
     episodeId: string;
     currentPosition: number;
   }): Promise<void>;
-  
+
   private callbackTopics: { [topic: string]: (...args: any) => void } = {};
 
   on(topic: string, fn: (...args: any) => void) {

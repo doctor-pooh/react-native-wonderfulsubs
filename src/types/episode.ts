@@ -16,5 +16,6 @@ export interface Episode extends EpisodeDescription{
     name: string,
     episodeNumber: number,
     sources: Source[],
-    watched?: boolean
+    watched?: boolean,
+    progress?: number
 }

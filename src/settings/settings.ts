@@ -92,12 +92,21 @@ export default class DefaultSettingsController extends Settings {
       watched
     );
     this.trigger("setEpisodeWatched", {
+      watched,
       showId,
       seasonId,
       episodeId,
       finishedWatching
     });
     await AsyncStorage.setItem("@watched", JSON.stringify(watched));
+  }
+
+  async getWatched(): Promise<any> {
+    let watched = JSON.parse(await AsyncStorage.getItem("@watched"));
+    if (!watched) {
+      watched = {};
+    }
+    return watched;
   }
 
   async getEpisodesWatched(target: {
@@ -128,12 +137,21 @@ export default class DefaultSettingsController extends Settings {
       positions
     );
     this.trigger("setEpisodeCurrentPosition", {
+      positions,
       showId,
       seasonId,
       episodeId,
       currentPosition
     });
     await AsyncStorage.setItem("@currentPosition", JSON.stringify(positions));
+  }
+
+  async getCurrentPositions(): Promise<any> {
+    let positions = JSON.parse(await AsyncStorage.getItem("@currentPosition"));
+    if (!positions) {
+      positions = {};
+    }
+    return positions;
   }
 
   async getEpisodeCurrentPosition(target: {

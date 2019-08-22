@@ -89,7 +89,7 @@ export const onLoad = function ({ duration, naturalSize }) {
     } = this.props;
     const [_, dispatch] = this.context;
     const currentPosition = navigation.getParam("currentPosition", 0);
-    innerRef.current.seek(currentPosition);
+    innerRef.current.seek(currentPosition * duration);
     dispatch(reactActions.setVideoLoaded());
     const episode = findEpisode({
         seasonId,
@@ -133,7 +133,7 @@ export const onProgress = function (progress: any) {
         updateEpisodeCurrentPosition.call(this, 0);
         this.setState({ updatedWatchingStatus: true });
     } else {
-        updateEpisodeCurrentPosition.call(this, progress.currentTime);
+        updateEpisodeCurrentPosition.call(this, progress.currentTime / duration);
     }
     if (
         duration - progress.currentTime <= NEXT_EPISODE_POPUP_STOPWATCH &&
@@ -178,10 +178,10 @@ export const onEnd = function () {
 const stalledAction = function () {
     const [state] = this.context;
     const {
-        video: { progress }
+        video: { progress, duration }
     } = state;
     const { fetchSourceData, showId, seasonId, episodeId, source } = this.props;
-    fetchSourceData({ showId, seasonId, episodeId, currentPosition: progress, stalledSourceId: source.id });
+    fetchSourceData({ showId, seasonId, episodeId, currentPosition: progress / duration, stalledSourceId: source.id });
     console.log("fuckin stalled bro");
 };
 
